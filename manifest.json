@@ -1,0 +1,18 @@
+{
+  "name": "İnkılap Tarihi (1-7. Ünite) Akıllı Soru Sistemi",
+  "short_name": "İnkılap Quiz",
+  "description": "1-7. Ünite karışık soru ve yanlışları doğru yapana kadar tekrar sistemi",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#06b6d4",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
