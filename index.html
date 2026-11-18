@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" type="image/svg+xml" href="./icon.svg" />
   <link rel="apple-touch-icon" href="./icon.svg" />
-  <title>İnkılap Tarihi (1-7. Ünite) — Akıllı Tekrar & Hafıza Kodlama Sistemi</title>
+  <title>İnkılap Tarihi (1-7. Ünite) — Çoklu Ünite Seçimli Akıllı Tekrar Sistemi</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -77,19 +77,13 @@
     .unit-pill {
       transition: all 0.18s ease;
       white-space: nowrap;
+      user-select: none;
     }
     .unit-pill-active {
-      background: linear-gradient(135deg, rgba(34, 211, 238, 0.25), rgba(139, 92, 246, 0.28)) !important;
-      border-color: rgba(34, 211, 238, 0.75) !important;
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.28), rgba(139, 92, 246, 0.32)) !important;
+      border-color: rgba(34, 211, 238, 0.85) !important;
       color: #ffffff !important;
-      box-shadow: 0 0 18px rgba(34, 211, 238, 0.22);
-    }
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+      box-shadow: 0 0 18px rgba(34, 211, 238, 0.25);
     }
   </style>
 </head>
@@ -107,7 +101,7 @@
             İnkılap <span class="text-cyan-400" id="headerScopeLabel">1–7. Ünite</span> Sistemi
           </h1>
           <p class="text-xs text-slate-400">
-            Ünite Seçimli • Hafıza Kodlamalı • Yanlışları Tekrar Sorar
+            Çoklu Ünite Seçimi • Hafıza Kodlamalı • Yanlışları Tekrar Sorar
           </p>
         </div>
       </div>
@@ -120,7 +114,7 @@
         <button onclick="toggleSound()" id="sfxToggleBtnMobile" class="p-2 rounded-xl bg-slate-800/80 border border-slate-600/50 text-xs text-slate-200">
           🔊
         </button>
-        <button onclick="resetCurrentUnit()" class="p-2 rounded-xl bg-slate-800/80 border border-slate-600/50 text-xs text-rose-300" title="Aktif Üniteyi Sıfırla">
+        <button onclick="resetCurrentSelection()" class="p-2 rounded-xl bg-slate-800/80 border border-slate-600/50 text-xs text-rose-300" title="Seçili Üniteleri Sıfırla">
           🔄
         </button>
       </div>
@@ -152,23 +146,23 @@
       <button id="sfxToggleBtn" onclick="toggleSound()" class="hidden sm:inline-flex px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-600/50 text-xs font-medium text-slate-200 transition cursor-pointer">
         🔊 Ses
       </button>
-      <button onclick="resetCurrentUnit()" class="hidden sm:inline-flex px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-rose-950/70 border border-slate-600/50 hover:border-rose-500/50 text-xs font-medium text-slate-300 hover:text-rose-200 transition cursor-pointer" title="Seçili ünitenin ilerlemesini sıfırla">
+      <button onclick="resetCurrentSelection()" class="hidden sm:inline-flex px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-rose-950/70 border border-slate-600/50 hover:border-rose-500/50 text-xs font-medium text-slate-300 hover:text-rose-200 transition cursor-pointer" title="Seçili ünitelerin ilerlemesini sıfırla">
         🔄 Sıfırla
       </button>
     </div>
   </header>
 
-  <!-- Unit Selector Bar (Ünite Seçme Kısmı) -->
-  <section class="w-full max-w-4xl glass-panel rounded-2xl p-2.5 sm:p-3.5 mb-4 sm:mb-5">
-    <div class="flex items-center justify-between mb-2 px-1">
-      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
-        📚 Çalışılacak Üniteyi Seç (Her ünitenin ilerlemesi ayrı kaydedilir)
+  <!-- Multi-Select Unit Selector Bar (Çoklu Ünite Seçme Kısmı) -->
+  <section class="w-full max-w-4xl glass-panel rounded-2xl p-3 sm:p-4 mb-4 sm:mb-5">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5 px-1">
+      <span class="text-xs font-semibold text-slate-300">
+        📚 <strong class="text-cyan-300">Çoklu Ünite Seçimi:</strong> İstediğin kadar üniteye tıklayıp aynı anda birleştirebilirsin!
       </span>
-      <span id="unitActiveInfo" class="text-xs font-medium text-cyan-400">
-        Tüm Üniteler (68 Soru)
+      <span id="unitActiveInfo" class="text-xs font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-2.5 py-1 rounded-lg">
+        Seçili: 1–7. Üniteler (68 Soru)
       </span>
     </div>
-    <div id="unitSelectorContainer" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+    <div id="unitSelectorContainer" class="flex flex-wrap items-center gap-2">
       <!-- Populated dynamically by JS -->
     </div>
   </section>
@@ -270,15 +264,13 @@
         <button id="summaryActionBtn" onclick="startNextPhase()" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-display font-bold text-base bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 text-slate-950 hover:opacity-95 transition shadow-xl shadow-cyan-500/25 cursor-pointer">
           Devam Et →
         </button>
-        <button id="nextUnitBtn" onclick="goToNextUnit()" class="hidden w-full sm:w-auto px-6 py-3.5 rounded-2xl font-display font-semibold text-sm bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/40 transition cursor-pointer">
-          Sonraki Üniteye Geç →
-        </button>
       </div>
     </div>
   </main>
 
   <script>
     const ALL_QUESTIONS = [{"id": 1, "page": 2, "unit": 1, "q_num": 1, "question": "Aşağıdakilerden hangisi Türk Devriminin stratejisini oluşturan öznel koşullardan değildir?", "options": [{"key": "A", "text": "Lider"}, {"key": "B", "text": "Örgüt"}, {"key": "C", "text": "İdeoloji"}, {"key": "D", "text": "Siyasal Sorunlar"}], "answer": "D", "mnemonicCode": "ÖZNEL = L-Ö-İ (Lider • Örgüt • İdeoloji)", "mnemonicTip": "İnsan iradesiyle kurulanlar (Lider, Örgüt, İdeoloji) ÖZNEL koşuldur; ülkedeki 'Siyasal Sorunlar' ise kendiliğinden var olan NESNEL koşuldur."}, {"id": 2, "page": 3, "unit": 1, "q_num": 2, "question": "İnkılâp, kavram olarak bir bütündür. Bir halk hareketi olarak eski düzenin yıkılmasını ve onun yerine yeni düzenin kurulmasını içerir. Buna göre aşağıda verilen inkılâp unsurlarından hangisi yanlıştır?", "options": [{"key": "A", "text": "İnkılâp bir halk hareketidir"}, {"key": "B", "text": "İnkılâp mevcut düzeni yıkma olayıdır"}, {"key": "C", "text": "İnkılâp yıkılan düzen yerine yeni bir düzen kurmaktır"}, {"key": "D", "text": "İnkılâp düzenleme aşamasıdır"}], "answer": "D", "mnemonicCode": "İnkılâp = Halk + Yıkma + Yeni Kurma (Düzenleme DEĞİL!)", "mnemonicTip": "Soru kökünde zaten kopya var: 'Halk hareketi, eskiyi yıkma, yeniyi kurma' metinde geçiyor. 'Düzenleme aşaması' ıslahata yakındır, inkılap unsuru değildir."}, {"id": 3, "page": 4, "unit": 1, "q_num": 3, "question": "İnkılâp kavramına yakın anlamda kullanılan \"Islahat\" kavramı aşağıdakilerden hangisini ifade eder?", "options": [{"key": "A", "text": "Mevcut düzen korunurken, düzenin aksayan yönlerini düzelmek için çalışma yapılması"}, {"key": "B", "text": "Askerin başkaldırısı ve askeri gücü kullanarak hükümeti yönetimden uzaklaştırma"}, {"key": "C", "text": "Toplum içinde belirli bir grubun veya herhangi bir teşkilatın sınırlı amaç ve hedefini gerçekleştirmek"}, {"key": "D", "text": "Bozulmuş düzenin yerine yeni bir düzen oluşturulması"}], "answer": "A", "mnemonicCode": "Islahat = İyileştirme / Tamir (Eskiyi Yıkmadan Düzeltme)", "mnemonicTip": "'Islah etmek' = düzeltmek demektir. Mevcut düzeni yıkmadan sadece aksayan yönleri onarmaktır (Yıkıp yenisini kurmak = İnkılap)."}, {"id": 4, "page": 5, "unit": 1, "q_num": 4, "question": "Mustafa Kemal Atatürk \" Hürriyet olmayan bir ülkede ölüm ve yok oluş vardır. Her gelişmenin ve kurtuluşun anası hürriyettir.\" demiştir. Buna göre Atatürk'ün demokratik bir ortamın kurulması için,\nI. Tek parti iktidarının sürdürülmesi\nII. Tam bağımsızlığın sağlanması\nIII. Çağdaşlaşma yolunda adımlar atılması Durumlarından hangilerini temel koşul olarak gördüğü savunulabilir?", "options": [{"key": "A", "text": "Yalnız I"}, {"key": "B", "text": "Yalnız II"}, {"key": "C", "text": "Yalnız III"}, {"key": "D", "text": "I ve III"}], "answer": "B", "mnemonicCode": "Hürriyet = Yok Oluştan Kurtuluş = TAM BAĞIŞIKLIK (Tam Bağımsızlık)", "mnemonicTip": "Atatürk 'ölüm ve yok oluştan kurtuluşun anası hürriyettir' diyerek doğrudan esaretten kurtulmayı yani 'Yalnız II - Tam bağımsızlığı' vurgular."}, {"id": 5, "page": 6, "unit": 1, "q_num": 5, "question": "Aşağıdakilerden hangisi Anadolu Ulusal Eyleminin ideolojisidir?", "options": [{"key": "A", "text": "Liberalizm"}, {"key": "B", "text": "Sosyalizm"}, {"key": "C", "text": "Milliyetçilik"}, {"key": "D", "text": "Ümmetçilik"}], "answer": "C", "mnemonicCode": "Ulusal Eylem = Ulusçuluk = MİLLİYETÇİLİK", "mnemonicTip": "Soruda 'Ulusal' kelimesi geçiyor: Ulus = Millet demektir. Dolayısıyla Anadolu Ulusal Eyleminin ideolojisi doğrudan Milliyetçiliktir."}, {"id": 6, "page": 7, "unit": 1, "q_num": 6, "question": "Aşağıdaki liderlerden hangisi Türk Devrimini model almamıştır?", "options": [{"key": "A", "text": "Habib Burgiba"}, {"key": "B", "text": "Gandi"}, {"key": "C", "text": "Cinnah"}, {"key": "D", "text": "Stalin"}], "answer": "D", "mnemonicCode": "Mazlum Doğu Liderleri (Burgiba, Gandi, Cinnah) Model Aldı ≠ STALİN", "mnemonicTip": "Tunus (Burgiba), Hindistan (Gandi) ve Pakistan (Cinnah) mazlum ulus liderleridir ve Atatürk'ü örnek almıştır; Sovyet diktatörü Stalin model almamıştır."}, {"id": 7, "page": 8, "unit": 1, "q_num": 7, "question": "Aşağıdaki sözcük çiftlerinden hangisi \"hızlı ve ileriye doğru olarak bir halden başka bir hale dönüşme\" anlamına gelmektedir?", "options": [{"key": "A", "text": "Devrim/Tekâmül"}, {"key": "B", "text": "Devrim/İnkılâp"}, {"key": "C", "text": "Darbe/Evrim"}, {"key": "D", "text": "Evrim/Tekâmül"}], "answer": "B", "mnemonicCode": "Hızlı Dönüşüm = DEVRİM / İNKILÂP (Evrim/Tekâmül = Yavaş)", "mnemonicTip": "Şıklarda 'Evrim' veya 'Tekâmül' varsa YAVAŞ demektir, hemen ele! Hızlı ve ileriye doğru dönüşüm = Devrim / İnkılâp."}, {"id": 8, "page": 9, "unit": 1, "q_num": 8, "question": "Mustafa Kemal Atatürk “ Toplu bir milleti istila etmek, darmadağınık bir milleti istila etmek gibi kolay değildir” sözüyle aşağıdakilerden hangisinin önemini vurgulamıştır.", "options": [{"key": "A", "text": "Milli birlik ve beraberliğin"}, {"key": "B", "text": "Millet egemenliğinin"}, {"key": "C", "text": "Din ve inanç özgürlüğünün"}, {"key": "D", "text": "Kanunlar önünde eşitliğin"}], "answer": "A", "mnemonicCode": "Toplu Millet vs Darmadağınık Millet = MİLLİ BİRLİK VE BERABERLİK", "mnemonicTip": "'Toplu bir millet' = kenetlenmiş, birleşmiş millet demektir. Dağınıklığın zıttı doğrudan 'Milli birlik ve beraberlik'tir."}, {"id": 9, "page": 10, "unit": 1, "q_num": 9, "question": "Uzun zamana yayılmış toplumsal dönüşüm ve değişim hareketi olgusu aşağıdakilerden hangisidir?", "options": [{"key": "A", "text": "Devrim"}, {"key": "B", "text": "İnkılâp"}, {"key": "C", "text": "Evrim"}, {"key": "D", "text": "Islahât"}], "answer": "C", "mnemonicCode": "Uzun Zamana Yayılmış (Yavaş) Değişim = EVRİM", "mnemonicTip": "7. sorunun tam tersi! 'Uzun zamana yayılmış' diyorsa ani devrim değil, aşama aşama gerçekleşen 'Evrim'dir."}, {"id": 10, "page": 11, "unit": 1, "q_num": 10, "question": "Atatürk yapmak istediği inkılaplar hakkında önce kamuoyunu bilgilendirmeye ve tartışılmasını sağlamaya özen göstermiş daha sonra TBMM'nin onayı ile inkılabın yapılmasını sağlamıştır. Bu durumun aşağıdaki amaçlardan hangisine yönelik olduğu söylenebilir?", "options": [{"key": "A", "text": "İnkılapların halk tarafından benimsenmesini sağlamaya"}, {"key": "B", "text": "İnkılaplar için dış destek sağlamaya"}, {"key": "C", "text": "Gerektiğinde güç kullanmaya"}, {"key": "D", "text": "Devlet otoritesini güçlü tutmaya"}], "answer": "A", "mnemonicCode": "Önce Kamuoyu Bilgilendirme & Tartışma = HALKIN BENİMSEMESİ", "mnemonicTip": "Atatürk zorla dayatmak yerine önce halka anlatıp tartıştırıyorsa, amacı 'inkılapların halk tarafından benimsenmesini sağlamak'tır."}, {"id": 11, "page": 13, "unit": 2, "q_num": 1, "question": "Avrupa’da yaşanan sanayi devrimi sırasında görülen;\nI- Köyden kente göçlerin artması\nII- Hammadde ve pazar arayışının hızlanması\nIII- Sömürgecilik faaliyetlerinin hızlanması\nIV- İşçi sınıfının ortaya çıkması gelişmelerinden hangileri devletlerarası rekabetin artmasında öncelikle etkili olmuştur?", "options": [{"key": "A", "text": "I ve II"}, {"key": "B", "text": "I ve III"}, {"key": "C", "text": "II ve IV"}, {"key": "D", "text": "II ve III"}], "answer": "D", "mnemonicCode": "Sanayi Rekabeti = Hammadde/Pazar (II) + Sömürgecilik (III)", "mnemonicTip": "Köyden kente göç ve işçi sınıfı ülke İÇİ sosyal sonuçtur. Devletlerarası REKABETİ kızıştıran şey: Hammadde/Pazar ve Sömürgeciliktir (II ve III)."}, {"id": 12, "page": 14, "unit": 2, "q_num": 2, "question": "Aşağıdakilerden hangisi Aydınlanma Çağında gelişen düşüncelerden biri değildir?", "options": [{"key": "A", "text": "Sosyal eşitsizliğin bir Tanrı düzeni olduğunun kabul edilerek korunması"}, {"key": "B", "text": "Halk için devlet anlayışının yaygınlaşması"}, {"key": "C", "text": "Din ve devlet işlerinin birbirine karıştırılmaması"}, {"key": "D", "text": "Akıl, deneycilik, bilim ve doğa düşüncesinin hakim olması"}], "answer": "A", "mnemonicCode": "Aydınlanma = Akıl & Bilim ≠ 'Tanrı Düzeni Eşitsizlik' (Skolastik)", "mnemonicTip": "'Sosyal eşitsizliğin Tanrı düzeni olarak korunması' Orta Çağ Kilise/Skolastik düşüncesidir, Aydınlanma Çağı buna karşı çıkmıştır."}, {"id": 13, "page": 15, "unit": 2, "q_num": 3, "question": "Aşağıdakilerden hangisi Şark meselesi çerçevesinde Türkiye'ye karşı uygulanan politikalardan biri değildir?", "options": [{"key": "A", "text": "Türkiye'nin bütünlüğünü ve güvenliğini korumak"}, {"key": "B", "text": "Osmanlı ülkesinde yaşayan gayrimüslimleri bağımsızlıklarını kazanmaları için desteklemek"}, {"key": "C", "text": "Türkleri Anadolu'dan Orta Asya'ya sürmek"}, {"key": "D", "text": "İstanbul'u Türklerden geri almak"}], "answer": "A", "mnemonicCode": "Şark Meselesi = Osmanlı'yı Paylaşma/Atma Planı ≠ Koruma!", "mnemonicTip": "Şark Meselesi Batı'nın Türkleri Avrupa ve Anadolu'dan atma planıdır. 'Türkiye'nin bütünlüğünü korumak' tam tersi bir ifadedir."}, {"id": 14, "page": 16, "unit": 2, "q_num": 4, "question": "Avrupa'da \"Yönetenlerin yetkilerini yönetilenlerden alması\" ilkesi aşağıdaki olayların hangisinin sonucu olarak doğmuştur?", "options": [{"key": "A", "text": "Sanayi Devrimi"}, {"key": "B", "text": "Aydınlanma felsefesinin doğuşu"}, {"key": "C", "text": "Fransız İhtilali"}, {"key": "D", "text": "Reform hareketi"}], "answer": "C", "mnemonicCode": "Yönetenlerin Yetkiyi Yönetilenlerden (Halktan) Alması = FRANSIZ İHTİLALİ", "mnemonicTip": "Milli egemenlik ve demokrasi fikri ('yetkiyi halktan alma') 1789 Fransız İhtilali'nin dünyaya yaydığı siyasi sonuçtur."}, {"id": 15, "page": 17, "unit": 2, "q_num": 5, "question": "Aşağıdakilerden hangisi 1815'te toplanan Viyana Kongresi'nde alınan kararlardan biri değildir?", "options": [{"key": "A", "text": "Yeni sınırların milliyet, din ya da dil esasına göre belirlenmesi"}, {"key": "B", "text": "İmparatorlukların kutsal oluşu"}, {"key": "C", "text": "Demokrasi hareketlerinin engellenmesi"}, {"key": "D", "text": "Konferans katılımcılarının kendi başlarına karar almayacakları"}], "answer": "A", "mnemonicCode": "1815 Viyana Kongresi (Metternich) = Milliyetçiliğe DÜŞMAN!", "mnemonicTip": "Viyana Kongresi krallıkları korumak için toplandı; sınırları 'milliyet, din ve dil' esasına göre çizmek şöyle dursun, milliyetçiliği yasaklamaya çalıştı."}, {"id": 16, "page": 18, "unit": 2, "q_num": 6, "question": "Aşağıdakilerden hangisi Sanayi Devrimi'nin yol açtığı gelişmelerden biri değildir", "options": [{"key": "A", "text": "Ulaştırma ve haberleşme gibi yeni sektörlerin doğması"}, {"key": "B", "text": "İnsan ve felsefe ile ilgili çalışmaların artması"}, {"key": "C", "text": "Yeni iş gücü ihtiyacı nedeniyle kentlere göçün artması"}, {"key": "D", "text": "Yeni bir sınıf olarak işçi sınıfının doğması"}], "answer": "B", "mnemonicCode": "Sanayi Devrimi = Fabrika/Göç/İşçi ≠ İnsan ve Felsefe (Rönesans/Aydınlanma)", "mnemonicTip": "'İnsan ve felsefe çalışmalarının artması' Rönesans ve Aydınlanma Çağı'nın sonucudur; Sanayi Devrimi ise makine, göç, ulaşım ve işçi sınıfıdır."}, {"id": 17, "page": 19, "unit": 2, "q_num": 7, "question": "Aşağıdakilerden hangisi Kutsal İttifak'ın Viyana Kongresi'nde aldığı kararlara rağmen engelenemeyen gelişmelerden biri olmuştur?", "options": [{"key": "A", "text": "Lehistan'ın parçalanarak topraklarının paylaşılması"}, {"key": "B", "text": "Amerika'nın bağımsızlığını kazanması"}, {"key": "C", "text": "Hollanda ve Fransa'nın dünya ticaretindeki üstünlüğü ele geçirmesi"}, {"key": "D", "text": "1848'den itibaren Avrupa'nın pek çok bölgesinde ihtilallerin çıkması"}], "answer": "D", "mnemonicCode": "Viyana Kararlarına Rağmen Patlak Veren Olay = 1848 İHTİLALLERİ", "mnemonicTip": "Viyana Kongresi 1815'tedir (Amerika'nın bağımsızlığı ve Lehistan daha öncedir). 1815'ten sonra engellenemeyen dalga '1848 İhtilalleri'dir."}, {"id": 18, "page": 20, "unit": 2, "q_num": 8, "question": "Avrupalılar Şark Meselesi'ni ilk kez hangi toplantıda dile getirmiştir?", "options": [{"key": "A", "text": "Viyana Kongresi"}, {"key": "B", "text": "Paris Kongresi"}, {"key": "C", "text": "Berlin Kongresi"}, {"key": "D", "text": "Londra Kongresi"}], "answer": "A", "mnemonicCode": "Şark Meselesi İLK KEZ = 1815 VİYANA KONGRESİ (Rus Çarı Aleksandr)", "mnemonicTip": "'Şark Meselesi' tabirini tarihte ilk kez 1815 Viyana Kongresi'nde Rus Çarı I. Aleksandr kullanmıştır. İlk toplantı = Viyana!"}, {"id": 19, "page": 21, "unit": 2, "q_num": 9, "question": "Fransız İhtilali’nden sonra birçok imparatorlukta azınlık sorunu artmıştır. Fransız İhtilali’nin,\nI . Ulusların kendi geleceklerinin kendilerinin belirlenmesi\nII. Kralların yetkilerini halk ile paylaşmaları\nIII. Doğuştan gelen ayrıcalıkların kaldırılması fikirlerinden hangileri bu duruma doğrudan ortam hazırlamıştır?", "options": [{"key": "A", "text": "Yalnız I"}, {"key": "B", "text": "Yalnız II"}, {"key": "C", "text": "II ve III"}, {"key": "D", "text": "Yalnız III"}], "answer": "A", "mnemonicCode": "İmparatorlukta Azınlık İsyanı = Yalnız I (Ulusların Kendi Geleceğini Belirlemesi)", "mnemonicTip": "Azınlık sorunu = Milliyetçilik demektir. Milliyetçiliği anlatan tek öncül I. öncüldür ('her ulusun kendi geleceğini belirlemesi')."}, {"id": 20, "page": 22, "unit": 2, "q_num": 10, "question": "Aşağıdakilerden hangisi Rönesans hareketlerinin sonuçlarından biri değildir?", "options": [{"key": "A", "text": "Uzun yıllar sürecek mezhep tartışmaları ortaya çıktı"}, {"key": "B", "text": "İslam dünyası ve Osmanlı Devleti; bilim, sanat ve edebiyatta Avrupa’ya göre geri kaldı"}, {"key": "C", "text": "Bilimde sanatta, edebiyatta özgün düşünce önem kazandı"}, {"key": "D", "text": "Avrupa’da skolastik düşünce yerini akla bıraktı"}], "answer": "A", "mnemonicCode": "Mezhep Tartışmaları = REFORM'un Sonucudur (Rönesans DEĞİL!)", "mnemonicTip": "Rönesans = Bilim, sanat, edebiyat. 'Uzun yıllar sürecek mezhep tartışmaları' ise din alanındaki REFORM hareketinin sonucudur."}, {"id": 21, "page": 24, "unit": 3, "q_num": 1, "question": "Osmanlı topraklarının has, tımar, yurtluk, ocaklık ve vakıf toprakları olarak sınıflandırılmasıyla ilk arazi rejimi hangi sultan döneminde oluşturulmuştur?", "options": [{"key": "A", "text": "Osman Gazi"}, {"key": "B", "text": "Orhan Bey"}, {"key": "C", "text": "I. Murat"}, {"key": "D", "text": "Fatih Sultan Mehmet"}], "answer": "B", "mnemonicCode": "İlk Arazi / Tımar Rejimi Teşkilatlanması = ORHAN BEY", "mnemonicTip": "Osmanlı'da devlet teşkilatlanması ve ilk arazi/tımar sınıflandırması kurucu Osman Gazi'den hemen sonra oğlu 'Orhan Bey' döneminde başlamıştır."}, {"id": 22, "page": 25, "unit": 3, "q_num": 2, "question": "Aşağıdakilerden hangisi Osmanlı toplumsal yapısı için doğru bir önerme değildir ?", "options": [{"key": "A", "text": "Osmanlı toplumu batıdaki biçimiyle sınıflı bir toplum yapısı göstermez"}, {"key": "B", "text": "Osmanlı toplumu, yöneten/yönetilen ayrılıkları üzerine kurulmuş bir toplumdur"}, {"key": "C", "text": "Osmanlı siyasal yapısında egemenlik Osmanlı hanedanına aittir"}, {"key": "D", "text": "Osmanlı toplumu bir sömürge toplumudur"}], "answer": "D", "mnemonicCode": "Osmanlı ≠ SÖMÜRGE Toplumu Değildir!", "mnemonicTip": "Osmanlı'da yöneten/yönetilen ayrımı ve hanedan egemenliği vardır ama Osmanlı hiçbir zaman bir 'sömürge toplumu' olmamıştır."}, {"id": 23, "page": 26, "unit": 3, "q_num": 3, "question": "Osmanlı Devleti, • Fatih Sultan Mehmet döneminde Ortodoksları himaye etmiş, Venediklilere imtiyazlar verilmiştir. • Kanuni Sultan Süleyman’ın Fransızlara kapitülasyonlar vermiş, Reform hareketleri hareketleri sırasında Protestanları desteklemiştir. Bu gelişmelere bakarak Osmanlı padişahlarının bu politikalarıyla aşağıdakilerden hangisini amaçladıkları söylenemez?", "options": [{"key": "A", "text": "Ortodoks mezhebini denetim altına almayı"}, {"key": "B", "text": "Avrupalı devletlerin güçlenmesini sağlamayı"}, {"key": "C", "text": "Avrupa’da Hristiyan birliğini parçalamayı"}, {"key": "D", "text": "Avrupalı devletlerle ticari ilişkiler geliştirmeyi"}], "answer": "B", "mnemonicCode": "Osmanlı'nın Amacı Hristiyan Birliğini Bölmekti ≠ Avrupalıları Güçlendirmek DEĞİL!", "mnemonicTip": "Fatih ve Kanuni'nin ayrıcalık vermesi Hristiyan birliğini parçalamak içindi; hiçbir devlet rakibi olan 'Avrupalı devletlerin güçlenmesini' amaçlamaz!"}, {"id": 24, "page": 27, "unit": 3, "q_num": 4, "question": "Osmanlı Devleti'nin ilk kez büyük oranda toprak kaybettiği antlaşma aşağıdakilerden hangisidir?", "options": [{"key": "A", "text": "Ziştovi Antlaşması/1791"}, {"key": "B", "text": "Karlofça Antlaşması/1699"}, {"key": "C", "text": "Pasarofça Antlaşması/1718"}, {"key": "D", "text": "Küçük Kaynarca Antlaşması/1774"}], "answer": "B", "mnemonicCode": "İlk Büyük Toprak Kaybı = 1699 KARLOFÇA ('K'arlofça = 'K'ayıp Başlangıcı)", "mnemonicTip": "Osmanlı'nın ilk kez büyük oranda toprak kaybettiği ve Gerileme Dönemi'ni başlatan antlaşma 1699 Karlofça Antlaşması'dır."}, {"id": 25, "page": 28, "unit": 3, "q_num": 5, "question": "Osmanlı Yenileşme Hareketi kapsamında gerçekleştirilen “ilk Türkçe gazetenin yayınlanması, fes ve pantolon giyme zorunluluğu getirilmesi, İstanbul ile sınırlı olmak üzere ilkokulun zorunlu kılınması, devlet işlerinin yeni kurulan nezaret ve meclislere bölüştürülmesi” gibi uygulamalar hangi Osmanlı padişahı döneminde yaşanmıştır?", "options": [{"key": "A", "text": "III. Selim"}, {"key": "B", "text": "II. Mahmut"}, {"key": "C", "text": "II. Abdülhamit"}, {"key": "D", "text": "V. Murat"}], "answer": "B", "mnemonicCode": "Fes + Pantolon + İlk Gazete + İlkokul Zorunluluğu + Nezaretler = II. MAHMUT", "mnemonicTip": "Takvim-i Vekayi (ilk gazete), fes, pantolon, divan yerine nezaretler (bakanlıklar) ve İstanbul'da zorunlu ilkokul = Yenilikçi padişah II. Mahmut!"}, {"id": 26, "page": 29, "unit": 3, "q_num": 6, "question": "Aşağıdaki seçeneklerden hangisi III. Selim devrinde gerçekleştirilmek istenen Nizam-ı Cedit yeniliğinin hedefini en iyi ifade eden tanımdır?", "options": [{"key": "A", "text": "Merkezi otoriteyi sağlamlaştırarak imparatorluk topraklarında asayiş ve güvenliği yeniden sağlamak"}, {"key": "B", "text": "Orduyu yenileyip güçlendirerek imparatorluğun eski parlak günlerine dönüşünü sağlamak"}, {"key": "C", "text": "Saray entrikalarına ve Yeniçeri hakimiyetine son vererek devlet yönetimini yeniden güçlendirmek"}, {"key": "D", "text": "Siyasi, sosyal, iktisadi ve askeri alanda kapsamlı bir düzenlemeyle tüm devlet teşkilatını yenilemek"}], "answer": "D", "mnemonicCode": "III. Selim Nizam-ı Cedit = 'Yeni Düzen' = Siyasi, Sosyal, İktisadi, Askeri TÜM Teşkilat", "mnemonicTip": "Nizam-ı Cedit sadece bir ordu adı değil; siyasi, sosyal, iktisadi ve askeri alanda kapsamlı bir düzenlemeyle TÜM devlet teşkilatını yenileme hedefidir."}, {"id": 27, "page": 30, "unit": 3, "q_num": 7, "question": "Aşağıdakilerden hangisi III. Selim'in başlatmış olduğu yenileşme hareketinin duraklamasına yol açmış etkenlerden biridir?", "options": [{"key": "A", "text": "Yeniçerilerin, ulema, ayan ve bazı devlet adamlarının eski itibar ve yetkilerini kaybetme korkusuyla yenileşmeye karşı çıkmaları"}, {"key": "B", "text": "III. Selim'in tüm bu yenilikleri bir sistem ve program dahilinde uygulamaya muktedir olmaması"}, {"key": "C", "text": "Avrupa usulündeki yeni düzenlemenin Osmanlı devlet yapısına uygun olmaması"}, {"key": "D", "text": "Avrupa'dan getirtilen eğitimcilerin başarısızlıkları"}], "answer": "A", "mnemonicCode": "III. Selim'i Durduran = Çıkarını Kaybetmekten Korkanlar (Yeniçeri + Ulema + Ayan)", "mnemonicTip": "Yeniliklere karşı çıkan klasik üçlü: Eski itibar ve yetkilerini kaybetme korkusu yaşayan 'Yeniçeriler, ulema ve ayanlar'dır (Kabakçı Mustafa İsyanı)."}, {"id": 28, "page": 31, "unit": 3, "q_num": 8, "question": "19. Yüzyıl yenileşme hareketinin mimarlarından biri olan II. Mahmut'un merkezi otoriteyi kuvvetlendirmek için gerçekleştirdiği ilk icraatı aşağıdakilerden hangisi olmuştur?", "options": [{"key": "A", "text": "Sekban-ı Cedid Ocağı'nı kurmak"}, {"key": "B", "text": "Sened-i İttifak'ı imzalamak"}, {"key": "C", "text": "Yeniçeri Ocağı'nı kaldırmak"}, {"key": "D", "text": "Kavalalı İbrahim Paşa ile sözleşme imzalamak"}], "answer": "B", "mnemonicCode": "II. Mahmut'un İLK İcraatı (1808) = SENED-İ İTTİFAK (Ayanlarla Sözleşme)", "mnemonicTip": "II. Mahmut 1808'de tahta çıktığında Alemdar Mustafa Paşa aracılığıyla ilk olarak ayanlarla 'Sened-i İttifak'ı imzalamıştır (Yeniçeri'nin kaldırılması 1826'dadır)."}, {"id": 29, "page": 33, "unit": 4, "q_num": 1, "question": "Osmanlı Devleti’nin I. Meşrutiyet döneminde mecliste Türkler dışında farklı unsurların temsilcileri de yer almıştır. Osmanlı Devleti’nin bu uygulaması aşağıdakilerden hangisini önlemeye yöneliktir?", "options": [{"key": "A", "text": "Sınıf çatışmaları"}, {"key": "B", "text": "Çok uluslu toplum yapısı"}, {"key": "C", "text": "Azınlık hakları"}, {"key": "D", "text": "Milliyetçilik akımları"}], "answer": "D", "mnemonicCode": "Mecliste Gayrimüslim Temsilciler = MİLLİYETÇİLİK Akımlarını Önlemek", "mnemonicTip": "I. Meşrutiyet'te azınlıklara mecliste temsil hakkı verilmesinin amacı 'Osmanlıcılık' fikriyle 'Milliyetçilik akımlarını' ve dağılmayı önlemektir."}, {"id": 30, "page": 34, "unit": 4, "q_num": 2, "question": "Aşağıdaki seçeneklerden hangisi Islahat Fermanının ilanıyla birlikte gerçekleşmiş gelişmelerden biri değildir?", "options": [{"key": "A", "text": "Gayrimüslimlere bütün devlet memurluklarına ve meclislere girebilme hakkı verilmesi"}, {"key": "B", "text": "Gayrimüslimlere askeri ve sivil tüm okullara girebilme hakkı verilmesi"}, {"key": "C", "text": "Gayrimüslimlere asker olma hakkı verilmesi ve isterlerse bedelli askerlik haklarının bulunması"}, {"key": "D", "text": "Vergilerin gayrimüslimlerin kudretine göre belirlenmesi, fazlasının alınamayacak olması"}], "answer": "D", "mnemonicCode": "Herkesten Kudretine (Gelirine) Göre Vergi = TANZİMAT (1839) (Islahat DEĞİL!)", "mnemonicTip": "Dikkat! 'Herkesten gelirine/kudretine göre vergi alınması' 1839 Tanzimat Fermanı maddesidir. Memurluk, okul ve bedelli askerlik ise 1856 Islahat Fermanı'dır."}, {"id": 31, "page": 35, "unit": 4, "q_num": 3, "question": "Aşağıdaki seçeneklerden hangisi ”Halka siyasi haklarının ve özgürlüklerinin verilmesiyle birlikte Müslim-Gayrimüslim tüm Osmanlı halkı Meclis vasıtasıyla dilediği kanunu yaparak sulh içinde yaşamını sürdürecektir” anlayışını savunan Yeni Osmanlı hareketi aydınlarından biri değildir?", "options": [{"key": "A", "text": "Namık Kemal"}, {"key": "B", "text": "Ali Suavi"}, {"key": "C", "text": "Ali Paşa"}, {"key": "D", "text": "Agah Efendi"}], "answer": "C", "mnemonicCode": "ALİ PAŞA = Babıali Sadrazamıdır (Yeni Osmanlılar'ın Baş Muhalifi!)", "mnemonicTip": "Namık Kemal, Ali Suavi ve Agah Efendi 'Yeni Osmanlılar' (Jön Türkler) aydınıdır. Sadrazam 'Ali Paşa' ise onların eleştirdiği hükümet başkanıdır!"}, {"id": 32, "page": 36, "unit": 4, "q_num": 4, "question": "Tanzimat Dönemi reformlarının temel amacı, Osmanlı milleti yaratmak ve böylece dış baskılardan kurtulmaktı. Bu bilgiden hareketle, Osmanlı Devleti için aşağıdakilerden hangisine ulaşılamaz?", "options": [{"key": "A", "text": "Avrupa’nın iç işlerine karışmasını engellemeyi amaçlamıştır"}, {"key": "B", "text": "Osmanlıcılık anlayışı ile milliyetçilik akımını etkisiz kılmayı amaçlamıştır"}, {"key": "C", "text": "Azınlıkların devlete bağlılığını artırmaya çalışmıştı"}, {"key": "D", "text": "Ulusal egemenlik anlayışını yerleştirmeyi amaçlamıştır"}], "answer": "D", "mnemonicCode": "Tanzimat Döneminde Padişah Vardı = ULUSAL EGEMENLİK (Cumhuriyet) Yoktu!", "mnemonicTip": "Osmanlı'da Tanzimat döneminde amaç devleti dağılmaktan kurtarmaktı; 'Ulusal egemenlik' ise ancak Kurtuluş Savaşı ve TBMM ile yerleşmiştir."}, {"id": 33, "page": 37, "unit": 4, "q_num": 5, "question": "Aşağıdakilerden hangisi Tanzimat Dönemi yeniliklerinden biri değildir?", "options": [{"key": "A", "text": "Ceza Kanunnamesinin çıkarılması"}, {"key": "B", "text": "Mahalli Meclislerin kurulması"}, {"key": "C", "text": "Rüştiye (ortaokul) ve öğretmen okullarının açılması"}, {"key": "D", "text": "Din işleriyle ilgilenmek üzere Dar-ül Hikmet-i İslamiye’nin kurulması"}], "answer": "D", "mnemonicCode": "Dar-ül Hikmet-i İslamiye = 1918 (Vahdettin Dönemi) (Tanzimat DEĞİL!)", "mnemonicTip": "Ceza Kanunnamesi, Mahalli Meclisler ve Rüştiyeler Tanzimat Dönemi'dir. 'Dar-ül Hikmet-i İslamiye' ise 1918'de I. Dünya Savaşı sonunda kurulmuştur."}, {"id": 34, "page": 38, "unit": 4, "q_num": 6, "question": "23 Aralık 1876’da ilan edilen Anayasa için aşağıdakilerden hangisi söylenemez?", "options": [{"key": "A", "text": "Yürütmeyi denetleme işi padişahındır"}, {"key": "B", "text": "Yargı güvenliği kesin değildi"}, {"key": "C", "text": "Yasama yetkisi padişaha aitti"}, {"key": "D", "text": "Siyasi parti kurma hakkı vardı"}], "answer": "D", "mnemonicCode": "1876 Kanun-i Esasi (I. Meşrutiyet) = SİYASİ PARTİ Kurma Hakkı YOKTU!", "mnemonicTip": "1876 Anayasası'nda (I. Meşrutiyet) siyasi partiler yoktur! Siyasi parti kurma hakkı ancak 1908 (II. Meşrutiyet / 1909 değişiklikleri) ile gelmiştir."}, {"id": 35, "page": 39, "unit": 4, "q_num": 7, "question": "Aşağıdakilerden hangisi Tanzimat döneminde açılan okullardan biri değildir?", "options": [{"key": "A", "text": "Darülfünun"}, {"key": "B", "text": "Mülkiye Mektebi"}, {"key": "C", "text": "Hendesehane"}, {"key": "D", "text": "Galatasaray Sultanisi"}], "answer": "C", "mnemonicCode": "HENDESEHANE = 1775 (I. Abdülhamit / 18. Yüzyıl) (Tanzimat Öncesi!)", "mnemonicTip": "Darülfünun, Mülkiye ve Galatasaray Sultanisi Tanzimat (1839-1876) okullarıdır. 'Hendesehane' ise Tanzimat'tan çok önce 1775'te açılan askeri mühendishanedir."}, {"id": 36, "page": 40, "unit": 4, "q_num": 8, "question": "Aşağıdaki seçeneklerden hangisi 93 Harbi olarak bilinen Osmanlı-Rus Savaşı’nın yol açtığı sonuçlardan biri değildir?", "options": [{"key": "A", "text": "Osmanlı Meclisi’nin savaş gerekçesiyle tatil edilmesi"}, {"key": "B", "text": "Navarin’de bulunan Osmanlı donanmasının yakılması"}, {"key": "C", "text": "Balkanlar, Kars ve Batum’un Rus hakimiyeti altına girmesi"}, {"key": "D", "text": "Rusların elde ettiği üstünlüğü dengelemek üzere Avrupalı devletlerin baskısıyla 1878’de Berlin Antlaşması’nın yapılması"}], "answer": "B", "mnemonicCode": "NAVARİN Baskını = 1827 (Yunan İsyanı Sırasında) ≠ 93 Harbi (1877-78) Değil!", "mnemonicTip": "93 Harbi 1877-1878'dedir (Meclis tatil edildi, Kars-Batum gitti, Berlin imzalandı). Navarin'de donanmanın yakılması ise 50 yıl önce 1827'dedir!"}, {"id": 37, "page": 41, "unit": 4, "q_num": 9, "question": "Osmanlı Devleti’nin kurtuluş ve yükselme çaresini, Türk unsurunun millet haline gelmesiyle çözüm olacağına inanılan düşünce akımı aşağıdakilerden hangisidir?", "options": [{"key": "A", "text": "İslamcılık"}, {"key": "B", "text": "Türkçülük"}, {"key": "C", "text": "Osmanlıcık"}, {"key": "D", "text": "Adem-i Merkeziyetçilik"}], "answer": "B", "mnemonicCode": "Türk Unsurunun Millet Haline Gelmesi = TÜRKÇÜLÜK", "mnemonicTip": "Soruda doğrudan 'Türk unsurunun millet haline gelmesi' diyor: Anahtar kelime Türk = Türkçülük akımı!"}, {"id": 38, "page": 42, "unit": 4, "q_num": 10, "question": "Meşrutiyet rejimi altında Hürriyet ve Eşitlik esaslarının kabul edildiği, mebuslar meclisinin açıldığı ve ülkede “Osmanlı milleti” bilinci oluşturarak devletin birliğini sağlama düşüncesini savunan aydınların oluşturduğu harekete ne isim verilir?", "options": [{"key": "A", "text": "İttihatçılar"}, {"key": "B", "text": "Yeni Osmanlılar"}, {"key": "C", "text": "Tanzimatçılar"}, {"key": "D", "text": "Islahatçılar"}], "answer": "B", "mnemonicCode": "Hürriyet + Eşitlik + Mebuslar Meclisi + Osmanlı Milleti = YENİ OSMANLILAR", "mnemonicTip": "I. Meşrutiyet'in ilanını ve Mebuslar Meclisi'nin açılmasını 'Hürriyet ve Eşitlik' sloganıyla savunan ilk aydın grubu 'Yeni Osmanlılar'dır (Namık Kemal vb.)."}, {"id": 39, "page": 44, "unit": 5, "q_num": 1, "question": "Aşağıdaki seçeneklerden hangisi İttihat ve Terakki Cemiyeti ile ilgili doğru bir bilgi değildir?", "options": [{"key": "A", "text": "Cemiyet 1889'da İttihad-ı Osmani adıyla kurulmuştur"}, {"key": "B", "text": "İttihad-ı Osmani cemiyeti ile Ahmet Rıza Bey'in ilişkiye geçmesinden sonra cemiyet Osmanlı İttihat ve Terakki Cemiyeti adını almıştır"}, {"key": "C", "text": "İttihat ve Terakki Cemiyeti Osmanlı Devleti'nin çöküşünü durdurmak ve istibdat idaresine son vermek amacıyla kurulmuştur"}, {"key": "D", "text": "İttihat ve Terakki Cemiyeti İslamcılık görüşünü benimsemiştir"}], "answer": "D", "mnemonicCode": "İttihat ve Terakki = TÜRKÇÜLÜK (İslamcılık DEĞİL!)", "mnemonicTip": "İttihat ve Terakki 1889'da İttihad-ı Osmani adıyla kuruldu, Ahmet Rıza ile adını aldı, istibdata karşı çıktı; ancak 'İslamcılık' değil 'Türkçülük' benimsemiştir."}, {"id": 40, "page": 45, "unit": 5, "q_num": 2, "question": "II.Meşrutiyetin ilanından memnun olmayan çevrelerin kışkırtmasıyla İstanbul'da 13 Nisan 1909'da 31 Mart ayaklanması çıktı. 31 Mart ayaklanmasının bastırılmasının Osmanlı devlet yönetimi açısından ortaya çıkardığı sonuç aşağıdakilerden hangisi olmuştur?", "options": [{"key": "A", "text": "Hükümet ile Meclisi Mebusan arasındaki anlaşmazlıklar giderildi."}, {"key": "B", "text": "Halkın görüşlerini yansıtabilmesi için partilerin kurulması kararlaştırıldı."}, {"key": "C", "text": "Padişahın bazı yetkileri kısıtlanarak Meclisin yetkileri arttırıldı."}, {"key": "D", "text": "Devletin teokratik yapısında düzenlemeler yapıldı."}], "answer": "C", "mnemonicCode": "31 Mart Vakası Sonucu (1909) = Padişahın Yetkileri Kısıtlandı, Meclis Güçlendi!", "mnemonicTip": "31 Mart İsyanı bastırılınca 1909 Anayasa değişikliği yapıldı: 'Padişahın yetkileri kısıtlanarak Meclisin yetkileri arttırıldı' (Demokratikleşme)."}, {"id": 41, "page": 46, "unit": 5, "q_num": 3, "question": "Aşağıdaki seçeneklerden hangisi 31 Mart Vakası ile ilgili doğru bir bilgi değildir?", "options": [{"key": "A", "text": "31 Mart Vakası'ndan sonra II. Abdülhamit tahtan indirilerek yerine Mehmet Reşat geçirilmiştir"}, {"key": "B", "text": "Ayaklanmanın başını Derviş Vahdeti'nin İttihat-ı Muhammediye Cemiyeti çekmiştir."}, {"key": "C", "text": "24 Nisan 1909'da Hareket Ordusu İstanbul'a girerek ayaklanmayı bastırmıştır."}, {"key": "D", "text": "Ayaklanmanın bastırılmasından sonra II. Meşrutiyet ilan edilmiştir."}], "answer": "D", "mnemonicCode": "Sıralama Tuzağı: Önce II. Meşrutiyet (1908) → Sonra 31 Mart Vakası (1909)!", "mnemonicTip": "D şıkkı ters söylemiş! II. Meşrutiyet 31 Mart'tan SONRA değil, 31 Mart'tan ÖNCE (1908'de) ilan edilmiştir; 31 Mart zaten Meşrutiyete karşı çıkmıştır."}, {"id": 42, "page": 47, "unit": 5, "q_num": 4, "question": "İttihatçı subayların 1908 yılında Makedonya’da meşrutiyeti ilan etmelerine yol açan olay aşağıdakilerden hangisidir?", "options": [{"key": "A", "text": "Reval konferansı"}, {"key": "B", "text": "İngiltere’nin baskıları"}, {"key": "C", "text": "Rusya’nın baskıları"}, {"key": "D", "text": "Almanya ile yakınlaşma"}], "answer": "A", "mnemonicCode": "1908 Makedonya Dağa Çıkış / Meşrutiyet İlanı = REVAL KONFERANSI", "mnemonicTip": "İngiltere ve Rusya'nın 1908 'Reval Konferansı'nda Makedonya/Osmanlı'yı paylaşacağı haberi üzerine İttihatçı subaylar (Niyazi ve Enver Bey) harekete geçmiştir."}, {"id": 43, "page": 48, "unit": 5, "q_num": 5, "question": "Aşağıdakilerden hangisi İkinci Meşrutiyetin ilanından sonra dış siyasette meydana gelen olaylardan biri değildir?", "options": [{"key": "A", "text": "Avusturya’nın Bosna-Hersek’i ilhakı"}, {"key": "B", "text": "Bulgaristan’ın bağımsızlığı"}, {"key": "C", "text": "Girit’in Yunanistan’a katılma kararı alması"}, {"key": "D", "text": "Rusya ile ittifak kurulması"}], "answer": "D", "mnemonicCode": "1908 II. Meşrutiyet Dış Kayıpları = BBG (Bulgaristan • Bosna • Girit) ≠ Rusya İttifakı!", "mnemonicTip": "1908'de yaşanan 3 dış olay 'BBG' diye kodlanır: Bulgaristan bağımsız oldu, Bosna-Hersek Avusturya'ya geçti, Girit Yunanistan'a katıldı. Rusya ile ittifak yoktur!"}, {"id": 44, "page": 49, "unit": 5, "q_num": 6, "question": "Aşağıdakilerden hangisi Trablusgarp Savaşı’nın sonunda imzalanan 1912 Uşi Barış Antlaşmasında yer almaz?", "options": [{"key": "A", "text": "Osmanlı Devleti, Trablusgarp ve Bingazi’ye bağımsızlık verecektir"}, {"key": "B", "text": "On iki Ada, geçici olarak İtalya’da kalacaktır"}, {"key": "C", "text": "Trablusgarp’ta sadece dini yetkileri olan naib-üssultan adında bir temsilci olacaktır"}, {"key": "D", "text": "İtalya Kuzey Afrika bölgelerine bağımsızlık verecektir"}], "answer": "D", "mnemonicCode": "1912 Uşi Antlaşması = İtalya Trablusgarp'ı SÖMÜRGE Yaptı (Bağımsızlık Vermedi!)", "mnemonicTip": "İtalya Trablusgarp'ı sömürgeleştirmek için işgal etti; 'İtalya Kuzey Afrika bölgelerine bağımsızlık verecektir' ifadesi tamamen yanlıştır."}, {"id": 45, "page": 50, "unit": 5, "q_num": 7, "question": "Balkan savaşlarında Osmanlı Devletine karşı savaşmamış Balkan ülkesi hangisidir?", "options": [{"key": "A", "text": "Bulgaristan"}, {"key": "B", "text": "Arnavutluk"}, {"key": "C", "text": "Sırbistan"}, {"key": "D", "text": "Yunanistan"}], "answer": "B", "mnemonicCode": "Balkan Savaşlarında Osmanlı'ya Savaşmayan Tek Balkan Ülkesi = ARNAVUTLUK", "mnemonicTip": "Balkan Savaşı'nda Osmanlı'ya saldıranlar 'B-Y-S-K' (Bulgaristan, Yunanistan, Sırbistan, Karadağ). 'Arnavutluk' Osmanlı'ya karşı savaşmamış, savaş sırasında bağımsız olmuştur."}, {"id": 46, "page": 51, "unit": 5, "q_num": 8, "question": "Aşağıdaki kurumlardan hangisi İttihat ve Terakki İktidarı döneminde kurulmamıştır?", "options": [{"key": "A", "text": "Türk Ocağı"}, {"key": "B", "text": "Milli Filmcilik Cemiyeti"}, {"key": "C", "text": "Halk Evleri"}, {"key": "D", "text": "Milli Kütüphane"}], "answer": "C", "mnemonicCode": "HALK EVLERİ = 1932 (Atatürk / Cumhuriyet Dönemi) (İttihat ve Terakki DEĞİL!)", "mnemonicTip": "Türk Ocağı, Milli Filmcilik ve Milli Kütüphane İttihat-Terakki dönemidir. 'Halk Evleri' ise Cumhuriyet döneminde 1932'de Atatürk tarafından kurulmuştur!"}, {"id": 47, "page": 52, "unit": 5, "q_num": 9, "question": "Aşağıdakilerden hangisi I. Balkan Savaşı'ndan sonra Balkan devletleriyle Osmanlı Devleti arasında imzalanmış olan antlaşmadır?", "options": [{"key": "A", "text": "Bükreş Antlaşması/ 10 Ağustos 1913"}, {"key": "B", "text": "İstanbul Antlaşması/29 Eylül 1913"}, {"key": "C", "text": "Londra Antlaşması/30 Mayıs 1913"}, {"key": "D", "text": "Atina Antlaşması/14 Kasım 1913"}], "answer": "C", "mnemonicCode": "I. Balkan Savaşı Sonu = 30 Mayıs 1913 LONDRA Antlaşması", "mnemonicTip": "I. Balkan Savaşı sonunda imzalanan antlaşma 'Londra Antlaşması'dır (Bükreş, İstanbul ve Atina antlaşmaları II. Balkan Savaşı sonundadır)."}, {"id": 48, "page": 53, "unit": 5, "q_num": 10, "question": "Aşağıdakilerden hangisi/hangileri I. Balkan Savaşı'nın sonuçlarındandır?\nI. Osmanlı Devleti tarihinin en büyük yenilgisine uğramıştır.\nII. Osmanlı Devleti Meriç Nehri'nin batısındaki tüm Balkan topraklarını ve Ege adalarını kaybetmiştir.\nIII.Edirne ile birlikte bütün Trakya Bulgaristan'a verilmiştir.", "options": [{"key": "A", "text": "I-II"}, {"key": "B", "text": "II-III"}, {"key": "C", "text": "I-III"}, {"key": "D", "text": "I-II-III"}], "answer": "D", "mnemonicCode": "I. Balkan Savaşı Felaketi = I, II ve III'ün TAMAMI (Meriç Batısı + Edirne Kaybedildi)", "mnemonicTip": "I. Balkan Savaşı'nda Osmanlı büyük yenilgi aldı (I), Meriç batısı ve Ege adalarını kaybetti (II), hatta Edirne ve Kırklareli bile Bulgaristan'a verildi (III) -> I-II-III."}, {"id": 49, "page": 55, "unit": 6, "q_num": 1, "question": "Aşağıdakilerden hangisi/hangileri I. Dünya Savaşı'nın sebepleri arasında yer alır?\nI.Avrupalı devletlerin üstünlük ve mevcut sömürgelerini koruma yarışı\nII.Rusya'nın panslavizm, Almanya'nın pangermanizm siyaseti\nIII.Osmanlı Devleti'nin Avrupa'da kaybettiği toprakları geri alma düşüncesi", "options": [{"key": "A", "text": "I-II"}, {"key": "B", "text": "I-III"}, {"key": "C", "text": "I-II-III"}, {"key": "D", "text": "II-III"}], "answer": "A", "mnemonicCode": "I. Dünya Savaşı GENEL Sebebi = Sömürge Yarışı (I) + Panslavizm/Pangermanizm (II)", "mnemonicTip": "Soruda I. Dünya Savaşı'nın genel sebepleri soruluyor: Sömürgecilik (I) ve Panslavizm-Pangermanizm (II). Osmanlı'nın toprak geri alma isteği (III) savaşın çıkma sebebi değil, Osmanlı'nın savaşa girme sebebidir!"}, {"id": 50, "page": 56, "unit": 6, "q_num": 2, "question": "3 Mart 1918’de imzalanan Brest-Litovsk Antlaşması aşağıdakilerden hangisiyle doğrudan ilgilidir?", "options": [{"key": "A", "text": "ABD’nin savaşa girmesi"}, {"key": "B", "text": "İtalya’nın taraf değiştirmesi"}, {"key": "C", "text": "Arapların Osmanlı yönetimine karşı ayaklanması"}, {"key": "D", "text": "Rusya’nın I. Dünya Savaşı’ndan çekilmesi"}], "answer": "D", "mnemonicCode": "3 Mart 1918 BREST-LİTOVSK = RUSYA'nın Savaştan Çekilmesi", "mnemonicTip": "Rusçada 'Litovsk' kelimesinden hatırla: Bolşevik İhtilali sonrası 'Rusya'nın I. Dünya Savaşı'ndan çekildiği' ve Kars-Ardahan-Batum'u geri verdiği antlaşmadır."}, {"id": 51, "page": 57, "unit": 6, "q_num": 3, "question": "1917 yılına kadar devam eden Rus saldırılarında hangi şehir Rusya’nın hâkimiyetine girmemiştir?", "options": [{"key": "A", "text": "Trabzon"}, {"key": "B", "text": "Erzincan"}, {"key": "C", "text": "Ankara"}, {"key": "D", "text": "Erzurum"}], "answer": "C", "mnemonicCode": "1917 Rus İşgali = Doğu Anadolu & Karadeniz (Trabzon, Erzurum, Erzincan) ≠ ANKARA", "mnemonicTip": "Ruslar I. Dünya Savaşı'nda Doğu'dan saldırdı (Erzurum, Erzincan, Trabzon'a girdi). İç Anadolu'daki 'Ankara'ya Ruslar hiç gelmemiştir!"}, {"id": 52, "page": 58, "unit": 6, "q_num": 4, "question": "Aşağıdakilerden hangisi Osmanlı topraklarının paylaşmak için yapılan anlaşmalardan biri değildir?", "options": [{"key": "A", "text": "Sykes-Picot Antlaşması"}, {"key": "B", "text": "St. Jean de Maurienne Antlaşması"}, {"key": "C", "text": "Balfour Deklarasyonu"}, {"key": "D", "text": "Ankara İtilâfnamesi"}], "answer": "D", "mnemonicCode": "Gizli Paylaşım Antlaşmaları ≠ 1921 ANKARA İTİLÂFNAMESİ (TBMM-Fransa Barışı)", "mnemonicTip": "Sykes-Picot, St. Jean de Maurienne ve Balfour gizli paylaşım planlarıdır. 'Ankara İtilafnamesi' ise Kurtuluş Savaşı'nda TBMM ile Fransa arasındaki barış antlaşmasıdır!"}, {"id": 53, "page": 59, "unit": 6, "q_num": 5, "question": "I. Dünya Savaşı'nı bitiren antlaşmalar hangi konferansta düzenlenmiştir?", "options": [{"key": "A", "text": "Londra Konferansı"}, {"key": "B", "text": "Paris Barış Konferansı"}, {"key": "C", "text": "İstanbul Konferansı"}, {"key": "D", "text": "Viyana Konferansı"}], "answer": "B", "mnemonicCode": "I. Dünya Savaşı Sonu Barış Taslakları = 1919 PARİS BARIŞ KONFERANSI", "mnemonicTip": "I. Dünya Savaşı'nı bitiren antlaşmalar (Versay, Sen Jermen vb.) 1919 'Paris Barış Konferansı'nda hazırlanmıştır (Sevr hariç, o San Remo'da)."}, {"id": 54, "page": 60, "unit": 6, "q_num": 6, "question": "Aşağıdakilerden hangisi Osmanlı Devleti'nin I. Dünya Savaşında İttifak Devletleri yanında savaşa girmesinde etken olmamıştır?", "options": [{"key": "A", "text": "Almanya'nın savaşı kazanacağına duyulan inanç"}, {"key": "B", "text": "Almanya'ya duyulan yakınlık"}, {"key": "C", "text": "İtilaf Devletleri'nin Osmanlı topraklarına saldırması"}, {"key": "D", "text": "Goben ve Breslav harp gemilerinin Rus limanlarına saldırması"}], "answer": "C", "mnemonicCode": "Osmanlı Savaşa Girerken İtilaf Devletleri Henüz Saldırmamıştı (Goben-Breslav Saldırdı!)", "mnemonicTip": "Osmanlı savaşa girmeden önce İtilaf Devletleri Osmanlı'ya saldırmadı, aksine Osmanlı'nın tarafsız kalmasını istiyorlardı. Savaşı başlatan Goben ve Breslav'ın Rus limanlarını bombalamasıdır."}, {"id": 55, "page": 61, "unit": 6, "q_num": 7, "question": "İtilaf Devletleri I. Dünya Savaşı sonrasında ekonomik çıkarlarını devam ettirmek için ortaya attıkları yeni yönetim şekli aşağıdakilerden hangisidir?", "options": [{"key": "A", "text": "Liberalizm"}, {"key": "B", "text": "Manda ve himayecilik"}, {"key": "C", "text": "Demokrasi"}, {"key": "D", "text": "Sosyalizm"}], "answer": "B", "mnemonicCode": "Sömürgeciliğin Kılıf Değiştirmiş Hali = MANDA VE HİMAYECİLİK", "mnemonicTip": "Wilson İlkeleri 'sömürgecilik yapılmayacak' deyince, İtilaf Devletleri sömürgeciliğin adını değiştirip 'Manda ve Himayecilik' koydular."}, {"id": 56, "page": 62, "unit": 6, "q_num": 8, "question": "I. Dünya Savaşı’nın sonucu aşağıdakilerden hangi olgunun sebebi olmuştur?", "options": [{"key": "A", "text": "Barış konferanslarının başlaması"}, {"key": "B", "text": "Amerika Birleşik Devletleri’nin büyük bir güce ulaşması"}, {"key": "C", "text": "II. Dünya Savaşı’nın yolunun açılması"}, {"key": "D", "text": "Dünyada yeni rejimlerin ortaya çıkması"}], "answer": "C", "mnemonicCode": "I. Dünya Savaşı'nın Ağır Antlaşmaları → II. DÜNYA SAVAŞI'nın Sebebi Oldu!", "mnemonicTip": "Dikkat: Soru 'I. Dünya Savaşı'nın sonucu hangi olgunun SEBEBİ olmuştur?' diyor. Ağır barış şartları (Versay vb.) doğrudan 'II. Dünya Savaşı'nın yolunun açılmasına' sebep olmuştur."}, {"id": 57, "page": 63, "unit": 6, "q_num": 9, "question": "Aşağıdakilerden hangisi Çanakkale cephesindeki zaferin sonuçlarından biri değildir?", "options": [{"key": "A", "text": "Milli Mücadele’nin başlaması"}, {"key": "B", "text": "I. Dünya Savaşı’nın uzaması"}, {"key": "C", "text": "Mustafa Kemal Paşa’nın Milli Mücadelede lider seçilmesi"}, {"key": "D", "text": "Bolşeviklerin iktidarı ele geçirmesi"}], "answer": "A", "mnemonicCode": "Çanakkale Zaferi (1915) ≠ Milli Mücadele'nin Başlaması (1919) Değildir!", "mnemonicTip": "Çanakkale Savaşı 1915'tedir: Savaşı uzattı, Rusya'da Bolşevik ihtilaline yol açtı, Mustafa Kemal'i tanıttı. Ama 'Milli Mücadele' 1919'da Mondros'tan sonra başlamıştır!"}, {"id": 58, "page": 64, "unit": 6, "q_num": 10, "question": "Aşağıdakilerden hangisi I. Dünya Savaşı'nın sonuçlarından biri değildir?", "options": [{"key": "A", "text": "İngiltere ekonomisi büyüyerek yeni bir gelişim aşamasına girdi"}, {"key": "B", "text": "Rusya'da Bolşevizm, Almanya'da Nasyonal Sosyalizm, İtalya'da Faşizm gibi yeni rejimler ortaya çıktı"}, {"key": "C", "text": "İmparatorlukların parçalanması nedeniyle yeni ulus devletler ortaya çıktı"}, {"key": "D", "text": "Savaştan en az zarar gören Amerikan ekonomisi yükselişe geçti"}], "answer": "A", "mnemonicCode": "I. Dünya Savaşı Sonunda İNGİLTERE Ekonomisi Büyümedi, Yıprandı! (ABD Yükseldi)", "mnemonicTip": "I. Dünya Savaşı'ndan en az zararla çıkıp ekonomisi yükselen ülke ABD'dir; İngiltere ise savaşın ağır yüküyle ekonomik olarak yıpranmıştır."}, {"id": 59, "page": 66, "unit": 7, "q_num": 1, "question": "Türk Hükümeti Lozan görüşmelerinde Ermeni meselesi ve kapitülasyonlar konusunda anlaşmaya varılamaz ise görüşmelerin kesilmesini barışın imzasından vazgeçilmesini kararlaştırmıştır. Ermeni meselesi ve kapitülasyonlar hangi yönleri nedeniyle taviz verilmeyecek konular arasında sayılmıştır?", "options": [{"key": "A", "text": "Diğer konulara etki etmeleri"}, {"key": "B", "text": "İtilaf devletlerinin barışa ikna edilmesine yol açmaları"}, {"key": "C", "text": "Ekonomik açıdan tehlikeli olmaları"}, {"key": "D", "text": "Tam bağımsızlığımızı engellemeleri"}], "answer": "D", "mnemonicCode": "Lozan'da Kırmızı Çizgi (Ermeni Yurdu + Kapitülasyonlar) = TAM BAĞIMSIZLIK", "mnemonicTip": "Ermenilere toprak vermek egemenliği, kapitülasyonlar ise ekonomik bağımsızlığı yok eder. İkisinin ortak noktası: 'Tam bağımsızlığımızı engellemeleri'dir."}, {"id": 60, "page": 67, "unit": 7, "q_num": 2, "question": "Ermeni meselesi ile ilgili dönüm noktası olarak sayılabilecek olaylar aşağıdakilerden hangisinde doğru olarak verilmiştir.", "options": [{"key": "A", "text": "Berlin Antlaşması - Gümrü Antlaşması"}, {"key": "B", "text": "Ermeni Tehciri Kanunu - Sevr Antlaşması"}, {"key": "C", "text": "Sevr Antlaşması - Lozan Antlaşması"}, {"key": "D", "text": "Tanzimat Fermanı- Lozan Antlaşması"}], "answer": "A", "mnemonicCode": "Ermeni Meselesi: Başlangıç = 1878 BERLİN • Bitiş = 1920 GÜMRÜ", "mnemonicTip": "Ermeni meselesi ilk kez 1878 'Berlin Antlaşması' ile uluslararası sorun oldu; Doğu Cephesi'nde 1920 'Gümrü Antlaşması' ile askeri/siyasi olarak çözüldü."}, {"id": 61, "page": 68, "unit": 7, "q_num": 3, "question": "Aşağıdakilerden hangisi 3 Aralık 1920 tarihinde imzalan Gümrü Antlaşmasının önemini belirten maddelerden biri değildir?", "options": [{"key": "A", "text": "Batı Cephesi kapanmıştır"}, {"key": "B", "text": "TBMM'nin imzaladığı ilk siyasi antlaşmadır"}, {"key": "C", "text": "Ermeniler Sevr Antlaşmasını tanımadıklarını kabul etmişlerdir"}, {"key": "D", "text": "Gümrü Antlaşması ile TBMM uluslararası alanda varlığını ilk kez kanıtlamıştır"}], "answer": "A", "mnemonicCode": "3 Aralık 1920 GÜMRÜ Antlaşması = DOĞU Cephesini Kapattı (Batı Cephesi DEĞİL!)", "mnemonicTip": "Gümrü Antlaşması Ermenilerle Doğu'da imzalandı ve DOĞU Cephesini kapattı! 'A) Batı Cephesi kapanmıştır' ifadesi açıkça yanlıştır."}, {"id": 62, "page": 69, "unit": 7, "q_num": 4, "question": "-Doğu sınırı Aras nehrinden Çıldır gölüne kadar olacaktır\n-Ermeni Hükümeti, Türkiye çıkarlarına uygun olmayan antlaşmaları kabul etmeyecektir Yukarıdaki antlaşma maddeleri aşağıdaki antlaşmalardan hangisine aittir?", "options": [{"key": "A", "text": "Mondros"}, {"key": "B", "text": "Sevr"}, {"key": "C", "text": "Mudanya"}, {"key": "D", "text": "Gümrü"}], "answer": "D", "mnemonicCode": "Aras Nehri – Çıldır Gölü + Ermeni Hükümeti = GÜMRÜ ANTLAŞMASI", "mnemonicTip": "Soruda 'Ermeni Hükümeti' ve 'Aras nehrinden Çıldır gölüne' ifadeleri geçiyor. Ermenilerle imzalanan antlaşma = Gümrü!"}, {"id": 63, "page": 70, "unit": 7, "q_num": 5, "question": "Ermeniler Doğu Anadolu'da nüfus olarak çoğunlukta olduklarını ileri sürmüşlerdir. Doğu Anadolu Müdafaa-i Hukuk Cemiyeti'nin hangi kararı, doğrudan Ermenilerin bu isteğine karşı bir tedbir olarak alınmıştır?", "options": [{"key": "A", "text": "Cemiyet bölgedeki şube sayısını arttıracak"}, {"key": "B", "text": "Erzurum'da bir kongre toplanacak"}, {"key": "C", "text": "Bölge halkı hiçbir surette göç etmeyecek"}, {"key": "D", "text": "Gerektiğinde birlikte silahlı savunmaya geçilecek"}], "answer": "C", "mnemonicCode": "Nüfus Çoğunluğu İddiasına Karşı Tedbir = HİÇBİR SURETTE GÖÇ ETMEYECEK!", "mnemonicTip": "Wilson İlkelerine göre kim çoğunluktaysa toprak onun olacaktı. Ermenilerin nüfus iddiasını çürütmek için alınan doğrudan tedbir: 'Bölge halkı kesinlikle göç etmeyecek!'"}, {"id": 64, "page": 71, "unit": 7, "q_num": 6, "question": "I. Dünya Savaşı sırasında Çarlık yönetimini yıkan Bolşevikler, İtilaf Devletleri'nin Osmanlı Devleti'ni parçalamak amacıyla imzaladığı gizli antlaşmaları açıkladılar. Bu antlaşmalarla Rusya'ya verilen hakların da geçersizliğini ilan ettiler. Sovyet-Rusya yönetiminin bu tutumuna bakılarak aşağıdakilerden hangisi söylenebilir?", "options": [{"key": "A", "text": "Yabancı ülkelerle ilişkilerini kestiği"}, {"key": "B", "text": "Osmanlı saltanatını desteklediği"}, {"key": "C", "text": "Almanya'yı desteklemeye başladığı"}, {"key": "D", "text": "Emperyalistlere karşı olduğu"}], "answer": "D", "mnemonicCode": "Bolşeviklerin Gizli Antlaşmaları İfşa Edip Haklarından Vazgeçmesi = EMPERYALİSTLERE KARŞI", "mnemonicTip": "Çarlık Rusya'sının sömürgeci (emperyalist) paylaşım antlaşmalarını iptal eden yeni Sovyet yönetimi, bununla 'Emperyalistlere karşı olduğunu' göstermiştir."}, {"id": 65, "page": 72, "unit": 7, "q_num": 7, "question": "Ermenilerin \"sözde soykırım\" iddialarının amacı nedir?", "options": [{"key": "A", "text": "Türk devletini yıpratmak"}, {"key": "B", "text": "Türkiye'den toprak talebinde bulunmak"}, {"key": "C", "text": "Türk imajını zedelemek"}, {"key": "D", "text": "\"4 T Planı\"nı uygulamak( Tanıtma- Tanınma-Tazminat-Toprak)"}], "answer": "D", "mnemonicCode": "Ermeni İddialarının 4 Aşamalı Hedefi = '4 T PLANI' (Tanıtma-Tanınma-Tazminat-Toprak)", "mnemonicTip": "İlk 3 şık zaten D şıkkının içindedir! En kapsamlı cevap: '4 T Planı' (Tanıtma → Tanınma → Tazminat → Toprak)."}, {"id": 66, "page": 73, "unit": 7, "q_num": 8, "question": "Ermeniler hangi tarihten sonra Nemesis hareketini başlatıp İttihat ve Terakki'nin önde gelen isimlerine saldırılar düzenlemişlerdir?", "options": [{"key": "A", "text": "1878 Berlin Antlaşması"}, {"key": "B", "text": "1915 Tehcir"}, {"key": "C", "text": "1920 Sevr"}, {"key": "D", "text": "1923 Lozan"}], "answer": "B", "mnemonicCode": "Nemesis (İntikam) Suikast Hareketi = 1915 TEHCİR Sonrası", "mnemonicTip": "Ermeni komitecilerin İttihat ve Terakki liderlerine (Talat Paşa, Cemal Paşa vb.) suikast düzenlediği 'Nemesis' operasyonu, '1915 Tehcir' kararından sonra başlatılmıştır."}, {"id": 67, "page": 74, "unit": 7, "q_num": 9, "question": "Aşağıdaki örgütlerden hangisi Ermeniler tarafından kurulmuş bir örgüt değildir?", "options": [{"key": "A", "text": "Armenekan Cemiyeti"}, {"key": "B", "text": "Kara Haç Cemiyeti"}, {"key": "C", "text": "Taşnak Cemiyeti"}, {"key": "D", "text": "Alyans İsrailit"}], "answer": "D", "mnemonicCode": "ALYANS İSRAİLİT = Yahudi (Musevi) Cemiyetidir (Ermeni DEĞİL!)", "mnemonicTip": "İsminde kopya var: 'İsrailit' = İsrail / Yahudi cemiyetidir! (Armenekan, Hınçak, Taşnak, Kara Haç ise Ermeni örgütleridir)."}, {"id": 68, "page": 75, "unit": 7, "q_num": 10, "question": "Tehcir uygulamasının Ermeni ulusuna karşı bir yok etme yöntemi olmadığını, bu nedenle de soykırım olarak nitelendirilemeyeceğini savunan tarihçi kimdir?", "options": [{"key": "A", "text": "Bernard LEWIS"}, {"key": "B", "text": "Taner AKÇAM"}, {"key": "C", "text": "Vahakh DADRIAN"}, {"key": "D", "text": "Halil BERKTAY"}], "answer": "A", "mnemonicCode": "Tehcirin Soykırım Olmadığını Savunan Ünlü Tarihçi = BERNARD LEWIS", "mnemonicTip": "Dünyaca ünlü Ortadoğu tarihçisi 'Bernard Lewis', 1915 Tehciri'nin bir yok etme planı (soykırım) olmadığını bilimsel olarak savunmuştur."}];
+    const ALL_UNIT_NUMS = [1, 2, 3, 4, 5, 6, 7];
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -365,11 +357,17 @@
       return copy;
     }
 
-    // Active Unit Filter: 'ALL' or 1..7
-    let currentUnit = localStorage.getItem('ata121_selected_unit_v3') || 'ALL';
+    // Selected units array, e.g. [1, 2, 3, 4, 5, 6, 7] or [1, 3]
+    let selectedUnits = [1, 2, 3, 4, 5, 6, 7];
+    try {
+      const savedSel = JSON.parse(localStorage.getItem('ata121_selected_units_v4'));
+      if (Array.isArray(savedSel) && savedSel.length > 0) {
+        selectedUnits = savedSel.map(Number).filter(n => n >= 1 && n <= 7).sort((a, b) => a - b);
+      }
+    } catch (e) {}
 
     let state = {
-      unit: 'ALL',
+      selectionKey: '1,2,3,4,5,6,7',
       cycle: 1,
       round: 1,
       queue: [],
@@ -380,27 +378,38 @@
       completedCycles: 0
     };
 
-    function getQuestionsForUnit(unitKey) {
-      if (unitKey === 'ALL') return ALL_QUESTIONS;
-      const uNum = parseInt(unitKey, 10);
-      return ALL_QUESTIONS.filter(q => q.unit === uNum);
+    function getSelectionKey(unitsArr) {
+      return [...unitsArr].sort((a, b) => a - b).join(',');
     }
 
-    function getStorageKey(unitKey) {
-      return `ata121_inkilap_v3_unit_${unitKey}`;
+    function getSelectionLabel(unitsArr) {
+      const sorted = [...unitsArr].sort((a, b) => a - b);
+      if (sorted.length === 7) return 'Tüm Üniteler (1–7)';
+      if (sorted.length === 1) return `${sorted[0]}. Ünite`;
+      return `${sorted.join(', ')}. Üniteler`;
+    }
+
+    function getQuestionsForUnits(unitsArr) {
+      const set = new Set(unitsArr.map(Number));
+      return ALL_QUESTIONS.filter(q => set.has(q.unit));
+    }
+
+    function getStorageKey(selKey) {
+      return `ata121_inkilap_v4_sel_${selKey}`;
     }
 
     function saveState() {
       try {
-        localStorage.setItem('ata121_selected_unit_v3', String(currentUnit));
-        localStorage.setItem(getStorageKey(currentUnit), JSON.stringify(state));
+        const selKey = getSelectionKey(selectedUnits);
+        localStorage.setItem('ata121_selected_units_v4', JSON.stringify(selectedUnits));
+        localStorage.setItem(getStorageKey(selKey), JSON.stringify(state));
       } catch (e) {}
       renderUnitSelector();
     }
 
-    function loadStateForUnit(unitKey) {
+    function loadStateForSelection(selKey) {
       try {
-        const raw = localStorage.getItem(getStorageKey(unitKey));
+        const raw = localStorage.getItem(getStorageKey(selKey));
         if (raw) {
           const parsed = JSON.parse(raw);
           if (parsed && Array.isArray(parsed.queue) && parsed.queue.length > 0 && parsed.currentIndex < parsed.queue.length) {
@@ -416,10 +425,11 @@
       return false;
     }
 
-    function initUnitCycle(unitKey, cycleNum = 1, completedCycles = 0) {
-      const pool = getQuestionsForUnit(unitKey);
+    function initSelectionCycle(unitsArr, cycleNum = 1, completedCycles = 0) {
+      const selKey = getSelectionKey(unitsArr);
+      const pool = getQuestionsForUnits(unitsArr);
       state = {
-        unit: unitKey,
+        selectionKey: selKey,
         cycle: cycleNum,
         round: 1,
         queue: shuffleArray(pool),
@@ -433,81 +443,109 @@
       renderCurrentQuestion();
     }
 
-    function selectUnit(unitKey) {
-      currentUnit = String(unitKey);
-      localStorage.setItem('ata121_selected_unit_v3', currentUnit);
+    function applyUnitSelection(newUnits) {
+      selectedUnits = [...new Set(newUnits.map(Number))].filter(n => n >= 1 && n <= 7).sort((a, b) => a - b);
+      if (selectedUnits.length === 0) {
+        selectedUnits = [1, 2, 3, 4, 5, 6, 7];
+      }
+      const selKey = getSelectionKey(selectedUnits);
+      localStorage.setItem('ata121_selected_units_v4', JSON.stringify(selectedUnits));
+
       document.getElementById('roundSummaryCard').classList.add('hidden');
       document.getElementById('quizCard').classList.remove('hidden');
 
-      if (!loadStateForUnit(currentUnit)) {
-        initUnitCycle(currentUnit, 1, 0);
+      if (!loadStateForSelection(selKey)) {
+        initSelectionCycle(selectedUnits, 1, 0);
       } else {
         renderUnitSelector();
         renderCurrentQuestion();
       }
     }
 
+    function toggleUnitButton(unitNum) {
+      const u = Number(unitNum);
+      // If all 7 units are currently selected ("Tümü" mode), clicking a specific unit starts a fresh selection with that unit,
+      // and subsequent clicks on other units ADD/TOGGLE them so you can easily select 2, 3, 4+ units together!
+      if (selectedUnits.length === 7) {
+        applyUnitSelection([u]);
+        return;
+      }
+      if (selectedUnits.includes(u)) {
+        if (selectedUnits.length === 1) {
+          // If it's the only selected unit and clicked again, select all
+          applyUnitSelection([1, 2, 3, 4, 5, 6, 7]);
+        } else {
+          applyUnitSelection(selectedUnits.filter(x => x !== u));
+        }
+      } else {
+        applyUnitSelection([...selectedUnits, u]);
+      }
+    }
+
+    function selectAllUnits() {
+      applyUnitSelection([1, 2, 3, 4, 5, 6, 7]);
+    }
+
     function renderUnitSelector() {
       const container = document.getElementById('unitSelectorContainer');
-      const units = [
-        { key: 'ALL', label: '🌐 Tümü (1–7)', count: ALL_QUESTIONS.length },
-        { key: '1', label: '1. Ünite', count: 10 },
-        { key: '2', label: '2. Ünite', count: 10 },
-        { key: '3', label: '3. Ünite', count: 8 },
-        { key: '4', label: '4. Ünite', count: 10 },
-        { key: '5', label: '5. Ünite', count: 10 },
-        { key: '6', label: '6. Ünite', count: 10 },
-        { key: '7', label: '7. Ünite', count: 10 }
+      const isAllSelected = selectedUnits.length === 7;
+
+      const unitMeta = [
+        { num: 1, count: 10 },
+        { num: 2, count: 10 },
+        { num: 3, count: 8 },
+        { num: 4, count: 10 },
+        { num: 5, count: 10 },
+        { num: 6, count: 10 },
+        { num: 7, count: 10 }
       ];
 
       container.innerHTML = '';
-      units.forEach(u => {
-        const isActive = String(currentUnit) === u.key;
-        let savedCompleted = 0;
-        let inProgressText = `${u.count} Soru`;
-        try {
-          const raw = localStorage.getItem(getStorageKey(u.key));
-          if (raw) {
-            const st = JSON.parse(raw);
-            savedCompleted = st.completedCycles || 0;
-            if (st.queue && st.currentIndex > 0) {
-              inProgressText = `${st.currentIndex + 1}/${st.queue.length}`;
-            }
-          }
-        } catch (e) {}
 
+      // "Tümü (1-7)" Button
+      const allBtn = document.createElement('button');
+      allBtn.onclick = () => selectAllUnits();
+      allBtn.className = `unit-pill px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-display font-semibold flex items-center gap-2 cursor-pointer ${
+        isAllSelected
+          ? 'unit-pill-active'
+          : 'bg-slate-900/80 border-slate-700/80 text-slate-300 hover:bg-slate-800 hover:border-slate-600'
+      }`;
+      allBtn.innerHTML = `<span>🌐 Tümü (1–7)</span><span class="px-1.5 py-0.5 rounded-md bg-slate-800/90 text-slate-300 text-xs">68</span>`;
+      container.appendChild(allBtn);
+
+      // Individual Multi-Select Unit Buttons (1..7)
+      unitMeta.forEach(u => {
+        const isChecked = !isAllSelected && selectedUnits.includes(u.num);
         const btn = document.createElement('button');
-        btn.onclick = () => selectUnit(u.key);
-        btn.className = `unit-pill px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-display font-semibold flex items-center gap-2 cursor-pointer ${
-          isActive
+        btn.onclick = () => toggleUnitButton(u.num);
+        btn.className = `unit-pill px-3 py-2 rounded-xl border text-xs sm:text-sm font-display font-semibold flex items-center gap-2 cursor-pointer ${
+          isChecked
             ? 'unit-pill-active'
             : 'bg-slate-900/80 border-slate-700/80 text-slate-300 hover:bg-slate-800 hover:border-slate-600'
         }`;
 
-        const badge = savedCompleted > 0
-          ? `<span class="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-xs">✓ ${savedCompleted}x</span>`
-          : `<span class="px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-400 text-xs">${inProgressText}</span>`;
+        const checkIcon = isChecked
+          ? `<span class="w-4 h-4 rounded bg-cyan-400 text-slate-950 flex items-center justify-center text-xs font-bold">✓</span>`
+          : `<span class="w-4 h-4 rounded border border-slate-600 bg-slate-800/60 inline-block"></span>`;
 
-        btn.innerHTML = `<span>${u.label}</span>${badge}`;
+        btn.innerHTML = `${checkIcon}<span>${u.num}. Ünite</span><span class="px-1.5 py-0.5 rounded-md bg-slate-800/90 text-slate-400 text-xs">${u.count}</span>`;
         container.appendChild(btn);
       });
 
-      const scopeTitle = currentUnit === 'ALL' ? '1–7. Ünite' : `${currentUnit}. Ünite`;
-      document.getElementById('headerScopeLabel').textContent = scopeTitle;
-      const poolLen = getQuestionsForUnit(currentUnit).length;
-      document.getElementById('unitActiveInfo').textContent =
-        currentUnit === 'ALL'
-          ? `Tüm Üniteler (${poolLen} Soru Karışık)`
-          : `Sadece ${currentUnit}. Ünite (${poolLen} Soru Karışık)`;
+      const poolLen = getQuestionsForUnits(selectedUnits).length;
+      const label = getSelectionLabel(selectedUnits);
+      document.getElementById('headerScopeLabel').textContent = isAllSelected ? '1–7. Ünite' : label;
+      document.getElementById('unitActiveInfo').textContent = `Seçili: ${label} (${poolLen} Soru)`;
     }
 
-    function resetCurrentUnit() {
-      const label = currentUnit === 'ALL' ? 'Tüm Ünitelerin (68 soru)' : `${currentUnit}. Ünitenin`;
-      if (!confirm(`${label} ilerlemesini sıfırlayıp en baştan karışık sırayla başlamak istiyor musun?`)) return;
-      localStorage.removeItem(getStorageKey(currentUnit));
+    function resetCurrentSelection() {
+      const label = getSelectionLabel(selectedUnits);
+      if (!confirm(`${label} için mevcut ilerlemeyi sıfırlayıp en baştan karışık sırayla başlamak istiyor musun?`)) return;
+      const selKey = getSelectionKey(selectedUnits);
+      localStorage.removeItem(getStorageKey(selKey));
       document.getElementById('roundSummaryCard').classList.add('hidden');
       document.getElementById('quizCard').classList.remove('hidden');
-      initUnitCycle(currentUnit, 1, 0);
+      initSelectionCycle(selectedUnits, 1, 0);
     }
 
     function renderCurrentQuestion() {
@@ -526,7 +564,7 @@
       document.getElementById('badgeOrigQ').textContent = `Soru #${q.q_num} (Sayfa ${q.page})`;
 
       const badgeMode = document.getElementById('badgeMode');
-      const scopeName = currentUnit === 'ALL' ? 'Tüm Üniteler' : `${currentUnit}. Ünite`;
+      const scopeName = getSelectionLabel(selectedUnits);
       if (state.round === 1) {
         badgeMode.textContent = `🎯 ${scopeName} • Ana Tur (${state.queue.length} Soru Karışık)`;
         badgeMode.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/15 text-violet-300 border border-violet-500/30';
@@ -647,31 +685,22 @@
       const title = document.getElementById('summaryTitle');
       const desc = document.getElementById('summaryDesc');
       const btn = document.getElementById('summaryActionBtn');
-      const nextUnitBtn = document.getElementById('nextUnitBtn');
 
-      const scopeLabel = currentUnit === 'ALL' ? 'Tüm Üniteler (68 Soru)' : `${currentUnit}. Ünite`;
+      const scopeLabel = getSelectionLabel(selectedUnits);
 
       if (state.wrongQueue.length > 0) {
         emoji.textContent = '🎯';
         title.textContent = `${scopeLabel} • ${state.round}. Tur Bitti!`;
         desc.textContent = `Bu turda ${state.wrongQueue.length} soruyu yanlış yaptın. Şimdi SADECE bu ${state.wrongQueue.length} soru karışık sırayla tekrar sorulacak.`;
         btn.textContent = `Yanlış Yapılan ${state.wrongQueue.length} Soruyu Çöz →`;
-        nextUnitBtn.classList.add('hidden');
       } else {
         playTone('win');
         state.completedCycles = (state.completedCycles || 0) + 1;
         saveState();
         emoji.textContent = '🏆';
         title.textContent = `${scopeLabel} • ${state.cycle}. Döngü Kusursuz Tamamlandı!`;
-        desc.textContent = `${scopeLabel} içindeki tüm soruları (yanlışlarını da sıfırlayarak) eksiksiz doğru cevapladın! İstersen aynı üniteyi baştan tekrar çözebilir veya bir sonraki üniteye geçebilirsin.`;
+        desc.textContent = `${scopeLabel} içindeki tüm soruları (yanlışlarını da sıfırlayarak) eksiksiz doğru cevapladın! Şimdi aynı seçimi yeni bir karışık sırayla baştan başlatabilir veya yukarıdan yeni üniteler ekleyebilirsin.`;
         btn.textContent = `${scopeLabel} • ${state.cycle + 1}. Döngüye Başla →`;
-
-        if (currentUnit !== 'ALL' && parseInt(currentUnit, 10) < 7) {
-          nextUnitBtn.textContent = `${parseInt(currentUnit, 10) + 1}. Üniteye Geç →`;
-          nextUnitBtn.classList.remove('hidden');
-        } else {
-          nextUnitBtn.classList.add('hidden');
-        }
       }
     }
 
@@ -689,16 +718,7 @@
         saveState();
         renderCurrentQuestion();
       } else {
-        initUnitCycle(currentUnit, state.cycle + 1, state.completedCycles || 0);
-      }
-    }
-
-    function goToNextUnit() {
-      if (currentUnit !== 'ALL') {
-        const nextU = parseInt(currentUnit, 10) + 1;
-        if (nextU <= 7) {
-          selectUnit(String(nextU));
-        }
+        initSelectionCycle(selectedUnits, state.cycle + 1, state.completedCycles || 0);
       }
     }
 
@@ -722,7 +742,7 @@
       }
     });
 
-    selectUnit(currentUnit);
+    applyUnitSelection(selectedUnits);
   </script>
 </body>
 </html>
