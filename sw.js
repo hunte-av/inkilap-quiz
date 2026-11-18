@@ -1,4 +1,4 @@
-const CACHE_NAME = 'inkilap-quiz-v7';
+const CACHE_NAME = 'inkilap-quiz-v8';
 const ASSETS = [
   './',
   './index.html',
