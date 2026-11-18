@@ -74,12 +74,29 @@
     .progress-bar-fill {
       transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     }
+    .unit-pill {
+      transition: all 0.18s ease;
+      white-space: nowrap;
+    }
+    .unit-pill-active {
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.25), rgba(139, 92, 246, 0.28)) !important;
+      border-color: rgba(34, 211, 238, 0.75) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 18px rgba(34, 211, 238, 0.22);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
 <body class="p-3 sm:p-5 md:p-8 flex flex-col items-center justify-start">
 
   <!-- Top HUD Header -->
-  <header class="w-full max-w-4xl glass-panel rounded-2xl p-3.5 sm:p-5 mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5">
+  <header class="w-full max-w-4xl glass-panel rounded-2xl p-3.5 sm:p-5 mb-3.5 sm:mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5">
     <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-cyan-400 to-violet-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 font-display font-bold text-base sm:text-lg text-slate-950 shrink-0">
@@ -87,10 +104,10 @@
         </div>
         <div>
           <h1 class="font-display font-bold text-base sm:text-xl tracking-tight text-slate-100 leading-tight">
-            İnkılap <span class="text-cyan-400">1–7. Ünite</span> Sistemi
+            İnkılap <span class="text-cyan-400" id="headerScopeLabel">1–7. Ünite</span> Sistemi
           </h1>
           <p class="text-xs text-slate-400">
-            Karışık Sorular • Hafıza Kodlamalı • Yanlışları Tekrar Sorar
+            Ünite Seçimli • Hafıza Kodlamalı • Yanlışları Tekrar Sorar
           </p>
         </div>
       </div>
@@ -103,7 +120,7 @@
         <button onclick="toggleSound()" id="sfxToggleBtnMobile" class="p-2 rounded-xl bg-slate-800/80 border border-slate-600/50 text-xs text-slate-200">
           🔊
         </button>
-        <button onclick="resetFullSystem()" class="p-2 rounded-xl bg-slate-800/80 border border-slate-600/50 text-xs text-rose-300" title="Sıfırla">
+        <button onclick="resetCurrentUnit()" class="p-2 rounded-xl bg-slate-800/80 border border-slate-600/50 text-xs text-rose-300" title="Aktif Üniteyi Sıfırla">
           🔄
         </button>
       </div>
@@ -135,11 +152,26 @@
       <button id="sfxToggleBtn" onclick="toggleSound()" class="hidden sm:inline-flex px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-600/50 text-xs font-medium text-slate-200 transition cursor-pointer">
         🔊 Ses
       </button>
-      <button onclick="resetFullSystem()" class="hidden sm:inline-flex px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-rose-950/70 border border-slate-600/50 hover:border-rose-500/50 text-xs font-medium text-slate-300 hover:text-rose-200 transition cursor-pointer">
+      <button onclick="resetCurrentUnit()" class="hidden sm:inline-flex px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-rose-950/70 border border-slate-600/50 hover:border-rose-500/50 text-xs font-medium text-slate-300 hover:text-rose-200 transition cursor-pointer" title="Seçili ünitenin ilerlemesini sıfırla">
         🔄 Sıfırla
       </button>
     </div>
   </header>
+
+  <!-- Unit Selector Bar (Ünite Seçme Kısmı) -->
+  <section class="w-full max-w-4xl glass-panel rounded-2xl p-2.5 sm:p-3.5 mb-4 sm:mb-5">
+    <div class="flex items-center justify-between mb-2 px-1">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        📚 Çalışılacak Üniteyi Seç (Her ünitenin ilerlemesi ayrı kaydedilir)
+      </span>
+      <span id="unitActiveInfo" class="text-xs font-medium text-cyan-400">
+        Tüm Üniteler (68 Soru)
+      </span>
+    </div>
+    <div id="unitSelectorContainer" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+      <!-- Populated dynamically by JS -->
+    </div>
+  </section>
 
   <!-- Main Quiz Card -->
   <main class="w-full max-w-4xl">
@@ -161,7 +193,7 @@
           </span>
         </div>
         <span id="badgeMode" class="px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/15 text-violet-300 border border-violet-500/30">
-          🎯 Ana Tur (Tüm Sorular Karışık)
+          🎯 Ana Tur (Karışık)
         </span>
       </div>
 
@@ -234,9 +266,14 @@
         </div>
       </div>
 
-      <button id="summaryActionBtn" onclick="startNextPhase()" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-display font-bold text-base bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 text-slate-950 hover:opacity-95 transition shadow-xl shadow-cyan-500/25 cursor-pointer">
-        Devam Et →
-      </button>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <button id="summaryActionBtn" onclick="startNextPhase()" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl font-display font-bold text-base bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 text-slate-950 hover:opacity-95 transition shadow-xl shadow-cyan-500/25 cursor-pointer">
+          Devam Et →
+        </button>
+        <button id="nextUnitBtn" onclick="goToNextUnit()" class="hidden w-full sm:w-auto px-6 py-3.5 rounded-2xl font-display font-semibold text-sm bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/40 transition cursor-pointer">
+          Sonraki Üniteye Geç →
+        </button>
+      </div>
     </div>
   </main>
 
@@ -328,31 +365,45 @@
       return copy;
     }
 
+    // Active Unit Filter: 'ALL' or 1..7
+    let currentUnit = localStorage.getItem('ata121_selected_unit_v3') || 'ALL';
+
     let state = {
+      unit: 'ALL',
       cycle: 1,
       round: 1,
       queue: [],
       currentIndex: 0,
       wrongQueue: [],
       roundCorrect: 0,
-      answered: false
+      answered: false,
+      completedCycles: 0
     };
 
-    const STORAGE_KEY = 'ata121_inkilap_mastery_v2';
+    function getQuestionsForUnit(unitKey) {
+      if (unitKey === 'ALL') return ALL_QUESTIONS;
+      const uNum = parseInt(unitKey, 10);
+      return ALL_QUESTIONS.filter(q => q.unit === uNum);
+    }
+
+    function getStorageKey(unitKey) {
+      return `ata121_inkilap_v3_unit_${unitKey}`;
+    }
 
     function saveState() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        localStorage.setItem('ata121_selected_unit_v3', String(currentUnit));
+        localStorage.setItem(getStorageKey(currentUnit), JSON.stringify(state));
       } catch (e) {}
+      renderUnitSelector();
     }
 
-    function loadState() {
+    function loadStateForUnit(unitKey) {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(getStorageKey(unitKey));
         if (raw) {
           const parsed = JSON.parse(raw);
           if (parsed && Array.isArray(parsed.queue) && parsed.queue.length > 0 && parsed.currentIndex < parsed.queue.length) {
-            // Hydrate latest question text & mnemonics by ID
             const byId = Object.fromEntries(ALL_QUESTIONS.map(q => [q.id, q]));
             parsed.queue = parsed.queue.map(q => byId[q.id] || q);
             parsed.wrongQueue = (parsed.wrongQueue || []).map(q => byId[q.id] || q);
@@ -365,26 +416,98 @@
       return false;
     }
 
-    function initFullCycle(cycleNum = 1) {
+    function initUnitCycle(unitKey, cycleNum = 1, completedCycles = 0) {
+      const pool = getQuestionsForUnit(unitKey);
       state = {
+        unit: unitKey,
         cycle: cycleNum,
         round: 1,
-        queue: shuffleArray(ALL_QUESTIONS),
+        queue: shuffleArray(pool),
         currentIndex: 0,
         wrongQueue: [],
         roundCorrect: 0,
-        answered: false
+        answered: false,
+        completedCycles: completedCycles
       };
       saveState();
       renderCurrentQuestion();
     }
 
-    function resetFullSystem() {
-      if (!confirm('Tüm ilerlemeyi sıfırlayıp 68 soruya en baştan karışık sırayla başlamak istiyor musun?')) return;
-      localStorage.removeItem(STORAGE_KEY);
+    function selectUnit(unitKey) {
+      currentUnit = String(unitKey);
+      localStorage.setItem('ata121_selected_unit_v3', currentUnit);
       document.getElementById('roundSummaryCard').classList.add('hidden');
       document.getElementById('quizCard').classList.remove('hidden');
-      initFullCycle(1);
+
+      if (!loadStateForUnit(currentUnit)) {
+        initUnitCycle(currentUnit, 1, 0);
+      } else {
+        renderUnitSelector();
+        renderCurrentQuestion();
+      }
+    }
+
+    function renderUnitSelector() {
+      const container = document.getElementById('unitSelectorContainer');
+      const units = [
+        { key: 'ALL', label: '🌐 Tümü (1–7)', count: ALL_QUESTIONS.length },
+        { key: '1', label: '1. Ünite', count: 10 },
+        { key: '2', label: '2. Ünite', count: 10 },
+        { key: '3', label: '3. Ünite', count: 8 },
+        { key: '4', label: '4. Ünite', count: 10 },
+        { key: '5', label: '5. Ünite', count: 10 },
+        { key: '6', label: '6. Ünite', count: 10 },
+        { key: '7', label: '7. Ünite', count: 10 }
+      ];
+
+      container.innerHTML = '';
+      units.forEach(u => {
+        const isActive = String(currentUnit) === u.key;
+        let savedCompleted = 0;
+        let inProgressText = `${u.count} Soru`;
+        try {
+          const raw = localStorage.getItem(getStorageKey(u.key));
+          if (raw) {
+            const st = JSON.parse(raw);
+            savedCompleted = st.completedCycles || 0;
+            if (st.queue && st.currentIndex > 0) {
+              inProgressText = `${st.currentIndex + 1}/${st.queue.length}`;
+            }
+          }
+        } catch (e) {}
+
+        const btn = document.createElement('button');
+        btn.onclick = () => selectUnit(u.key);
+        btn.className = `unit-pill px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-display font-semibold flex items-center gap-2 cursor-pointer ${
+          isActive
+            ? 'unit-pill-active'
+            : 'bg-slate-900/80 border-slate-700/80 text-slate-300 hover:bg-slate-800 hover:border-slate-600'
+        }`;
+
+        const badge = savedCompleted > 0
+          ? `<span class="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-xs">✓ ${savedCompleted}x</span>`
+          : `<span class="px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-400 text-xs">${inProgressText}</span>`;
+
+        btn.innerHTML = `<span>${u.label}</span>${badge}`;
+        container.appendChild(btn);
+      });
+
+      const scopeTitle = currentUnit === 'ALL' ? '1–7. Ünite' : `${currentUnit}. Ünite`;
+      document.getElementById('headerScopeLabel').textContent = scopeTitle;
+      const poolLen = getQuestionsForUnit(currentUnit).length;
+      document.getElementById('unitActiveInfo').textContent =
+        currentUnit === 'ALL'
+          ? `Tüm Üniteler (${poolLen} Soru Karışık)`
+          : `Sadece ${currentUnit}. Ünite (${poolLen} Soru Karışık)`;
+    }
+
+    function resetCurrentUnit() {
+      const label = currentUnit === 'ALL' ? 'Tüm Ünitelerin (68 soru)' : `${currentUnit}. Ünitenin`;
+      if (!confirm(`${label} ilerlemesini sıfırlayıp en baştan karışık sırayla başlamak istiyor musun?`)) return;
+      localStorage.removeItem(getStorageKey(currentUnit));
+      document.getElementById('roundSummaryCard').classList.add('hidden');
+      document.getElementById('quizCard').classList.remove('hidden');
+      initUnitCycle(currentUnit, 1, 0);
     }
 
     function renderCurrentQuestion() {
@@ -399,15 +522,16 @@
       const pct = Math.round((state.currentIndex / state.queue.length) * 100);
       document.getElementById('progressBar').style.width = `${pct}%`;
 
-      document.getElementById('badgeUnit').textContent = `${q.unit}. DERS`;
+      document.getElementById('badgeUnit').textContent = `${q.unit}. DERS (Ünite ${q.unit})`;
       document.getElementById('badgeOrigQ').textContent = `Soru #${q.q_num} (Sayfa ${q.page})`;
 
       const badgeMode = document.getElementById('badgeMode');
+      const scopeName = currentUnit === 'ALL' ? 'Tüm Üniteler' : `${currentUnit}. Ünite`;
       if (state.round === 1) {
-        badgeMode.textContent = '🎯 Ana Tur (68 Soru Karışık)';
+        badgeMode.textContent = `🎯 ${scopeName} • Ana Tur (${state.queue.length} Soru Karışık)`;
         badgeMode.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/15 text-violet-300 border border-violet-500/30';
       } else {
-        badgeMode.textContent = `🔁 ${state.round - 1}. Tekrar Turu (${state.queue.length} Yanlışın)`;
+        badgeMode.textContent = `🔁 ${scopeName} • ${state.round - 1}. Tekrar Turu (${state.queue.length} Yanlışın)`;
         badgeMode.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40';
       }
 
@@ -458,7 +582,6 @@
         }
       });
 
-      // Show Mnemonic Box (Always on wrong answer, and also on correct so they can reinforce!)
       const mnBox = document.getElementById('mnemonicBox');
       document.getElementById('mnemonicCode').textContent = `🔑 Şifre: ${q.mnemonicCode}`;
       document.getElementById('mnemonicTip').textContent = q.mnemonicTip;
@@ -524,18 +647,31 @@
       const title = document.getElementById('summaryTitle');
       const desc = document.getElementById('summaryDesc');
       const btn = document.getElementById('summaryActionBtn');
+      const nextUnitBtn = document.getElementById('nextUnitBtn');
+
+      const scopeLabel = currentUnit === 'ALL' ? 'Tüm Üniteler (68 Soru)' : `${currentUnit}. Ünite`;
 
       if (state.wrongQueue.length > 0) {
         emoji.textContent = '🎯';
-        title.textContent = `${state.round}. Tur Bitti — Yanlışları Temizleme Zamanı!`;
+        title.textContent = `${scopeLabel} • ${state.round}. Tur Bitti!`;
         desc.textContent = `Bu turda ${state.wrongQueue.length} soruyu yanlış yaptın. Şimdi SADECE bu ${state.wrongQueue.length} soru karışık sırayla tekrar sorulacak.`;
         btn.textContent = `Yanlış Yapılan ${state.wrongQueue.length} Soruyu Çöz →`;
+        nextUnitBtn.classList.add('hidden');
       } else {
         playTone('win');
+        state.completedCycles = (state.completedCycles || 0) + 1;
+        saveState();
         emoji.textContent = '🏆';
-        title.textContent = `${state.cycle}. Döngü Kusursuz Tamamlandı!`;
-        desc.textContent = `1. Üniteden 7. Üniteye kadar olan 68 sorunun tamamını (tüm yanlışlarını da temizleyerek) eksiksiz doğru cevapladın! Şimdi en başa dönüp tüm 68 soruyu yeni bir karışık sırayla başlatıyoruz.`;
-        btn.textContent = `${state.cycle + 1}. Döngüye Başla (Tüm 68 Soru) →`;
+        title.textContent = `${scopeLabel} • ${state.cycle}. Döngü Kusursuz Tamamlandı!`;
+        desc.textContent = `${scopeLabel} içindeki tüm soruları (yanlışlarını da sıfırlayarak) eksiksiz doğru cevapladın! İstersen aynı üniteyi baştan tekrar çözebilir veya bir sonraki üniteye geçebilirsin.`;
+        btn.textContent = `${scopeLabel} • ${state.cycle + 1}. Döngüye Başla →`;
+
+        if (currentUnit !== 'ALL' && parseInt(currentUnit, 10) < 7) {
+          nextUnitBtn.textContent = `${parseInt(currentUnit, 10) + 1}. Üniteye Geç →`;
+          nextUnitBtn.classList.remove('hidden');
+        } else {
+          nextUnitBtn.classList.add('hidden');
+        }
       }
     }
 
@@ -553,7 +689,16 @@
         saveState();
         renderCurrentQuestion();
       } else {
-        initFullCycle(state.cycle + 1);
+        initUnitCycle(currentUnit, state.cycle + 1, state.completedCycles || 0);
+      }
+    }
+
+    function goToNextUnit() {
+      if (currentUnit !== 'ALL') {
+        const nextU = parseInt(currentUnit, 10) + 1;
+        if (nextU <= 7) {
+          selectUnit(String(nextU));
+        }
       }
     }
 
@@ -577,11 +722,7 @@
       }
     });
 
-    if (!loadState()) {
-      initFullCycle(1);
-    } else {
-      renderCurrentQuestion();
-    }
+    selectUnit(currentUnit);
   </script>
 </body>
 </html>
